@@ -1,0 +1,32 @@
+{
+  "name": "flinginc",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "typecheck:scripts": "tsc -p tsconfig.scripts.json --noEmit",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "levels:generate": "tsx scripts/generate-levels.ts",
+    "levels:validate": "tsx scripts/validate-level-pack.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium",
+    "verify": "npm run test && npm run coverage && npm run typecheck:scripts && npm run build && npm run levels:validate",
+    "verify:e2e": "npm run build && playwright test",
+    "verify:all": "npm run verify && playwright test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@playwright/test": "^1.59.1",
+    "@vitest/coverage-v8": "^4.1.2",
+    "happy-dom": "^20.8.9",
+    "tsx": "^4.21.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.4",
+    "vitest": "^4.1.2"
+  }
+}
