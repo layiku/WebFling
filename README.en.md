@@ -109,4 +109,4 @@ First-time E2E: `npm run test:e2e:install` or `npx playwright install chromium`.
 
 ## License
 
-Not specified; add a `LICENSE` when you choose one.
+This project is licensed under the **MIT License** — see the [`LICENSE`](LICENSE) file in the repository root.

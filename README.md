@@ -109,4 +109,4 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 
 ## 许可证
 
-未指定；按你后续选择的许可证补充 `LICENSE`。
+本项目采用 **MIT License**，见仓库根目录 [`LICENSE`](LICENSE) 文件。
