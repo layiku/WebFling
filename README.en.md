@@ -4,6 +4,40 @@
 
 Vite + TypeScript. Board rules match the chained **HOG2** Fling semantics (`src/game/flingBoard.ts`).
 
+## Architecture overview
+
+Dependencies and data flow between the **browser runtime**, **rules kernel**, **level pack**, and **offline generator** (arrows = calls or reads).
+
+```mermaid
+flowchart TB
+  MT[main.ts entry]
+  subgraph app["Presentation src/app"]
+    GU[gameUi mount / events]
+    RM[runMoveAnimation]
+    LL[loadLevels / i18n / progress / swipe ...]
+  end
+  MT --> GU
+  MT --> LL
+  GU --> RM
+  subgraph domain["Domain src/game"]
+    FB[flingBoard + computeMovePlan]
+  end
+  GU --> FB
+  RM --> FB
+  LL --> JSON[(public/levels.json)]
+  subgraph offline["Offline npm run levels:generate"]
+    GEN[generate-levels.ts]
+    RG[reverseGen]
+  end
+  GEN --> JSON
+  GEN --> RG
+  RG --> FB
+```
+
+- **Runtime**: `GameSession` lives inside `gameUi`; a legal move uses `computeMovePlan` + `runMoveAnimation`, then `move` commits state (see `docs/PROJECT_RULES.md` §4.4).  
+- **Offline**: the generator writes `levels.json`; `src/levels/schema.ts` and `levelIndex.ts` define types and the 75-slot index.  
+- **Styles**: `src/style.css`, bundled to `dist/assets/*.css` by Vite.
+
 ## Usage
 
 ### Run locally

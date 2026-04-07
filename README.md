@@ -6,6 +6,40 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 
 游戏界面右上角 **EN / 中文** 可切换中英文；偏好保存在浏览器 `localStorage`（键 `fling-ui-locale`）。
 
+## 架构概览
+
+下图描述**浏览器运行时**、**规则内核**、**关卡包**与**离线生成脚本**之间的依赖与数据流（箭头表示调用或读取）。
+
+```mermaid
+flowchart TB
+  MT[main.ts 入口]
+  subgraph app["表现层 src/app"]
+    GU[gameUi 挂载 UI / 事件]
+    RM[runMoveAnimation]
+    LL[loadLevels / i18n / progress / swipe 等]
+  end
+  MT --> GU
+  MT --> LL
+  GU --> RM
+  subgraph domain["领域层 src/game"]
+    FB[flingBoard 规则与 computeMovePlan]
+  end
+  GU --> FB
+  RM --> FB
+  LL --> JSON[(public/levels.json)]
+  subgraph offline["离线 npm run levels:generate"]
+    GEN[generate-levels.ts]
+    RG[reverseGen]
+  end
+  GEN --> JSON
+  GEN --> RG
+  RG --> FB
+```
+
+- **运行时**：`GameSession` 在 `gameUi` 内持有局面，合法步先由 `computeMovePlan` + `runMoveAnimation` 播动画，再调用 `move` 提交；详见 `docs/PROJECT_RULES.md` §4.4。  
+- **离线**：生成器写回 `levels.json`；`src/levels/schema.ts` 与 `levelIndex.ts` 定义类型与 75 槽索引。  
+- **样式**：全局样式在 `src/style.css`，由 Vite 打包进 `dist/assets/*.css`。
+
 ## 使用说明
 
 ### 本地运行
