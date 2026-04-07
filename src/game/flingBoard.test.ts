@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   canMove,
   cloneBoard,
+  computeMovePlan,
   countBalls,
   countOccupiedCells,
   createBoard,
@@ -114,6 +115,46 @@ describe('countOccupiedCells', () => {
   it('matches countBalls on valid boards', () => {
     const b = createBoard(3, 3, [0, 4, 8])
     expect(countOccupiedCells(b)).toBe(countBalls(b))
+  })
+})
+
+describe('computeMovePlan', () => {
+  it('returns null when the move is illegal', () => {
+    const b = createBoard(3, 1, [0, 1])
+    expect(computeMovePlan(b, 0, 1, 0)).toBeNull()
+  })
+
+  it('matches a single strike then exit: segments and final board equal move()', () => {
+    const b = createBoard(3, 1, [0, 2])
+    const plan = computeMovePlan(b, 0, 1, 0)
+    expect(plan).not.toBeNull()
+    expect(plan).toEqual([
+      { kind: 'roll', pieceId: 0, path: [0, 1] },
+      {
+        kind: 'impact',
+        strikerId: 0,
+        strikerStopCell: 1,
+        targetId: 1,
+        hitCell: 2,
+      },
+      { kind: 'flyOff', pieceId: 1, fromCell: 2, dx: 1, dy: 0 },
+    ])
+    const after = cloneBoard(b)
+    move(after, 0, 1, 0)
+    const sim = cloneBoard(b)
+    move(sim, 0, 1, 0)
+    expect(sim.cells).toEqual(after.cells)
+  })
+
+  it('records a chain: second roll may be a one-cell path before the next impact', () => {
+    const b = createBoard(7, 1, [0, 2, 4])
+    const plan = computeMovePlan(b, 0, 1, 0)
+    expect(plan).not.toBeNull()
+    const kinds = plan!.map((s) => s.kind)
+    expect(kinds).toEqual(['roll', 'impact', 'roll', 'impact', 'flyOff'])
+    expect(plan![1]).toMatchObject({ kind: 'impact', strikerStopCell: 1, hitCell: 2 })
+    expect(plan![2]).toEqual({ kind: 'roll', pieceId: 1, path: [2, 3] })
+    expect(plan![3]).toMatchObject({ kind: 'impact', strikerStopCell: 3, hitCell: 4 })
   })
 })
 

@@ -137,3 +137,76 @@ export function move(
 
   board.cells[lasty * w + lastx] = EMPTY
 }
+
+// ─── Move animation plan (mirrors {@link move} step semantics) ───────
+
+/** 供 UI 播放滚动 / 撞击 / 飞出 动画，逻辑与 `move` 一致 */
+export type MoveAnimSegment =
+  | { kind: 'roll'; pieceId: number; path: number[] }
+  | {
+      kind: 'impact'
+      strikerId: number
+      strikerStopCell: number
+      targetId: number
+      hitCell: number
+    }
+  | { kind: 'flyOff'; pieceId: number; fromCell: number; dx: number; dy: number }
+
+/**
+ * 预计算一步移动的动画分段：连续滑动、每次撞击、最后飞出。
+ * 不改变传入的 `board`。
+ */
+export function computeMovePlan(
+  board: FlingBoard,
+  startCell: number,
+  dx: number,
+  dy: number,
+): MoveAnimSegment[] | null {
+  if (!canMove(board, startCell, dx, dy)) return null
+  const b = cloneBoard(board)
+  const w = b.width
+  const h = b.height
+  const segments: MoveAnimSegment[] = []
+
+  let movingId = b.cells[startCell]!
+  let lastx = startCell % w
+  let lasty = Math.floor(startCell / w)
+  let xx = lastx + dx
+  let yy = lasty + dy
+  const path: number[] = [startCell]
+
+  while (xx >= 0 && xx < w && yy >= 0 && yy < h) {
+    const idx = yy * w + xx
+    if (b.cells[idx]! >= 0) {
+      const lastIdx = lasty * w + lastx
+      segments.push({ kind: 'roll', pieceId: movingId, path: [...path] })
+      segments.push({
+        kind: 'impact',
+        strikerId: movingId,
+        strikerStopCell: lastIdx,
+        targetId: b.cells[idx]!,
+        hitCell: idx,
+      })
+      b.cells[lasty * w + lastx] = movingId
+      movingId = b.cells[idx]!
+      lastx = xx
+      lasty = yy
+      xx += dx
+      yy += dy
+      path.length = 0
+      path.push(lasty * w + lastx)
+    } else {
+      b.cells[lasty * w + lastx] = EMPTY
+      b.cells[idx] = movingId
+      lastx = xx
+      lasty = yy
+      path.push(idx)
+      xx += dx
+      yy += dy
+    }
+  }
+
+  const exitCell = lasty * w + lastx
+  segments.push({ kind: 'flyOff', pieceId: movingId, fromCell: exitCell, dx, dy })
+  return segments
+}

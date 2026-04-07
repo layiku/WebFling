@@ -43,6 +43,7 @@ npm run levels:generate
 | C4 执行步 | 仅当 `canMove` 为真调用 `move` | `src/app/applyMove.test.ts` |
 | C5 撤销 | 栈保存 `FlingBoard` 克隆 | `undo.test.ts` |
 | C6 胜利 / 非法 0 球 | UI 文案与流程 | 与 `flingBoard` 复用断言 |
+| C7 移动动画 | 链式一步的滚动 / 撞击 / 飞出：WAAPI；`computeMovePlan` 预计算；幽灵格 + 分层球（高光固定、球面旋转）；动画结束后再 `move` | `flingBoard.test.ts`（`computeMovePlan`） |
 
 ---
 

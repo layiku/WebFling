@@ -87,6 +87,11 @@
 
 - 避免无关重构；新逻辑优先落在独立模块；与 Fling 规则相关的变更必须落在 `src/game/` 并保持可单测。
 
+### 4.4 移动动画（与规则的关系）
+
+- **规则权威仍在** `src/game/flingBoard.ts`：`canMove` / `move` 不变。
+- **动画**仅负责展示：一步内链式片段由 `computeMovePlan` 预计算（与 `move` 语义一致），`src/app/runMoveAnimation.ts` 用 WAAPI 播放后再由会话层调用 `move` 提交局面。详见 `README.md`「移动动画」。
+
 ---
 
 ## 5. 相关文件索引
@@ -96,7 +101,8 @@
 | `docs/LEVEL_SPEC.md` | JSON 字段、190 关细节 |
 | `docs/IMPLEMENTATION_PLAN.md` | 分阶段任务 |
 | `docs/TEST_TRACEABILITY.md` | 需求 ↔ 测试表 |
-| `src/game/flingBoard.ts` | 可执行规则 |
+| `src/game/flingBoard.ts` | 可执行规则；`computeMovePlan` 供动画预计算 |
+| `src/app/runMoveAnimation.ts` | 一步移动的 WAAPI 动画编排 |
 | `src/levels/levelIndex.ts` | 关卡 id 与下标 |
 
 ---
@@ -107,3 +113,4 @@
 |------|------|
 | 2026-04-06 | 初版：HOG2 链式规则、19×10 固定关、难度序、工程约定 |
 | 2026-04-06 | `verify` / `verify:all`、覆盖率阈值与 E2E 说明 |
+| 2026-04-07 | §4.4 移动动画与规则边界；文件索引补充 `computeMovePlan` / `runMoveAnimation` |

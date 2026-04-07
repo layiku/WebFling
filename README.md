@@ -41,6 +41,17 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 | 提示一步 | 按关卡数据中的参考解法执行下一步；若已走偏与参考不一致，会提示需撤销或重开 |
 | 换关 | 「上一关」「下一关」；**下一关**需先通关当前关才会解锁（进度记在浏览器 `localStorage`） |
 
+### 移动动画（实现要点）
+
+一步合法移动会先播放 **Web Animations API** 动画，再更新棋盘数据；动画期间棋盘为 `aria-busy`，不可重复操作。
+
+| 要点 | 说明 |
+|------|------|
+| 预计算 | `computeMovePlan`（`src/game/flingBoard.ts`）在不改盘面的前提下，生成 `roll` / `impact` / `flyOff` 片段序列，与 `move()` 语义一致。 |
+| 播放 | `src/app/runMoveAnimation.ts`：幽灵格子（灰色背景随球平移）、分层球体（`ball-surface` 按滚动方向旋转，`ball-gloss` 固定左上角高光）。 |
+| 缓动 | 滑向目标为 `ease-out`；被撞飞出为 `ease-out`（避免起步停顿）；透明度在飞出后半段再淡出。 |
+| 样式 | `src/style.css`：外圈彩色光晕用 `box-shadow` + `--glow`，避免 `filter: blur` 首帧与静止球不一致的闪烁。 |
+
 ### 棋盘坐标
 
 - **列（横）**：从左到右为 `A`、`B`…`Z`，第 27 列起为 `AA`、`AB`…（与 Excel 列名相同）
@@ -83,7 +94,8 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 
 ## 目录
 
-- `src/game/` — 规则内核  
+- `src/game/` — 规则内核（含 `computeMovePlan` 供动画预计算）  
+- `src/app/` — 界面与对局（含 `runMoveAnimation.ts` 移动动画）  
 - `src/levels/` — 关卡索引与 JSON 类型  
 - `scripts/` — 离线生成器等  
 - `public/levels.json` — 运行时关卡包（由生成脚本产出）  

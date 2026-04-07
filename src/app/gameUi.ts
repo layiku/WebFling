@@ -1,4 +1,8 @@
-import { countOccupiedCells } from '../game/flingBoard.js'
+import {
+  canMove,
+  computeMovePlan,
+  countOccupiedCells,
+} from '../game/flingBoard.js'
 import { ballPlushClass } from './ballPlush.js'
 import { buildCellAriaLabel } from './cellAriaLabel.js'
 import { columnLetters } from './boardCoords.js'
@@ -6,6 +10,7 @@ import { TOTAL_LEVEL_SLOTS, levelFromIndex } from '../levels/levelIndex.js'
 import type { LevelPack } from '../levels/schema.js'
 import { pixelDeltaToDirection } from '../input/swipe.js'
 import { GameSession } from './gameSession.js'
+import { runMoveAnimation } from './runMoveAnimation.js'
 import {
   isLevelUnlocked,
   loadProgress,
@@ -143,6 +148,69 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
 
   let lastAxisW = -1
   let lastAxisH = -1
+  let moveAnimating = false
+
+  async function playMoveWithAnimation(
+    startCell: number,
+    dx: number,
+    dy: number,
+  ): Promise<boolean> {
+    if (moveAnimating) return false
+    if (session.getPhase() !== 'playing') return false
+    if (session.getBoard().cells[startCell]! < 0) return false
+    if (!canMove(session.getBoard(), startCell, dx, dy)) return false
+
+    const plan = computeMovePlan(session.getBoard(), startCell, dx, dy)
+    if (!plan?.length) return false
+
+    moveAnimating = true
+    boardEl.setAttribute('aria-busy', 'true')
+    try {
+      session.pushUndoSnapshot()
+      await runMoveAnimation(plan, boardEl, dx, dy)
+      session.executeMovePhysics(startCell, dx, dy)
+    } catch {
+      session.undo()
+    } finally {
+      moveAnimating = false
+      boardEl.removeAttribute('aria-busy')
+      // 兜底：确保 board--animating 不会因异常路径永久残留（pointer-events: none 会卡死交互）
+      boardEl.classList.remove('board--animating')
+      renderAll()
+    }
+    return true
+  }
+
+  async function playHintWithAnimation(): Promise<void> {
+    const r = session.getPackagedHintStep()
+    if (!r.ok) {
+      hintMessage(r.reason)
+      renderAll()
+      return
+    }
+    const { startCell, dx, dy } = r.step
+    const plan = computeMovePlan(session.getBoard(), startCell, dx, dy)
+    if (!plan?.length) {
+      hintMessage('illegal')
+      renderAll()
+      return
+    }
+    moveAnimating = true
+    boardEl.setAttribute('aria-busy', 'true')
+    hintLine.hidden = true
+    try {
+      session.pushUndoSnapshot()
+      await runMoveAnimation(plan, boardEl, dx, dy)
+      session.executeMovePhysics(startCell, dx, dy)
+    } catch {
+      session.undo()
+    } finally {
+      moveAnimating = false
+      boardEl.removeAttribute('aria-busy')
+      boardEl.classList.remove('board--animating')
+      renderAll()
+    }
+  }
 
   function persistProgress(): void {
     saveProgress(localStorage, progress)
@@ -180,10 +248,11 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
 
     const { world, stage } = levelFromIndex(idx)
     levelLabel.textContent = `第 ${world} 大关 · 第 ${stage} 小关 · ${pack.levels[idx]!.id}`
-    undoBtn.disabled = !session.canUndo()
-    prevBtn.disabled = idx <= 0
-    nextBtn.disabled = !isNextLevelEnabled(progress, idx, TOTAL_LEVEL_SLOTS)
-    hintBtn.disabled = ph !== 'playing'
+    undoBtn.disabled = !session.canUndo() || moveAnimating
+    prevBtn.disabled = idx <= 0 || moveAnimating
+    nextBtn.disabled =
+      !isNextLevelEnabled(progress, idx, TOTAL_LEVEL_SLOTS) || moveAnimating
+    hintBtn.disabled = ph !== 'playing' || moveAnimating
 
     if (ph === 'won') {
       statusEl.textContent = '胜利：只剩一球'
@@ -260,6 +329,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   }
 
   boardEl.addEventListener('click', (ev) => {
+    if (moveAnimating) return
     const t = (ev.target as HTMLElement).closest('button.cell') as
       | HTMLButtonElement
       | null
@@ -270,6 +340,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   })
 
   boardEl.addEventListener('pointerdown', (ev) => {
+    if (moveAnimating) return
     if (session.getPhase() !== 'playing') return
     const t = (ev.target as HTMLElement).closest('button.cell') as
       | HTMLButtonElement
@@ -288,8 +359,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
       const ddy = e.clientY - start.y
       const dir = pixelDeltaToDirection(ddx, ddy, SWIPE_MIN_PX)
       if (!dir) return
-      session.tryMoveFromCell(start.cell, dir.dx, dir.dy)
-      renderAll()
+      void playMoveWithAnimation(start.cell, dir.dx, dir.dy)
     }
     const onCancel = (): void => {
       cleanup()
@@ -299,6 +369,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   })
 
   window.addEventListener('keydown', (ev) => {
+    if (moveAnimating) return
     if (session.getPhase() !== 'playing') return
     // 仅在棋盘格子获得焦点（或无焦点）时响应方向键，
     // 避免焦点在其他按钮上时意外触发棋子移动
@@ -314,8 +385,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     else if (ev.key === 'ArrowUp') dy = -1
     else return
     ev.preventDefault()
-    session.tryMoveFromSelection(dx, dy)
-    renderAll()
+    void playMoveWithAnimation(sel, dx, dy)
   })
 
   prevBtn.addEventListener('click', () => setIndex(idx - 1))
@@ -331,13 +401,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     renderAll()
   })
   hintBtn.addEventListener('click', () => {
-    const r = session.tryApplyPackagedHint()
-    if (r.ok) {
-      hintLine.hidden = true
-    } else {
-      hintMessage(r.reason)
-    }
-    renderAll()
+    void playHintWithAnimation()
   })
 
   renderAll()

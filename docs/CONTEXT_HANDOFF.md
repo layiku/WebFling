@@ -35,7 +35,8 @@
 
 | 区域 | 路径 | 说明 |
 |------|------|------|
-| 棋盘内核 | `src/game/flingBoard.ts` | `canMove` / `move` / `createBoard` 等 |
+| 棋盘内核 | `src/game/flingBoard.ts` | `canMove` / `move` / `createBoard`；`computeMovePlan`（动画预计算，与 `move` 一致） |
+| 移动动画 | `src/app/runMoveAnimation.ts` | WAAPI：`roll` / `impact` / `flyOff`；幽灵格 + 分层球；由 `gameUi` 在应用 `move` 前调用 |
 | 反向生成 | `src/game/reverseGen.ts` | `tryReverseAddBall`、`generateLevel`、回放与校验 |
 | 关卡索引 | `src/levels/levelIndex.ts` | 19×10、key、下标 |
 | 离线生成 | `scripts/generate-levels.ts` | `buildPack`、`collectLevelsForWorld`；**勿在 Vitest 里直接 import 后无 guard 执行 main** |
@@ -102,9 +103,11 @@ npm run verify           # test + build + levels:validate
 
 ## 9. 下一阶段建议（未做或未完成）
 
-- **前端**：加载 `levels.json`、棋盘渲染、选球、滑动/四向、`canMove` 门禁、撤销、胜利/错误提示（见 `IMPLEMENTATION_PLAN.md` 阶段 C）。
+- **可选调优**：动画时长/缓动曲线、被撞球飞出距离 `FLYOFF_ROLL_PX`、撞击前停顿 `SETTLE_MS_BEFORE_IMPACT`（见 `runMoveAnimation.ts`）。
 - **全量生成**：在无 `LEVELGEN_MAX_WORLD` 下跑通 `levels:generate`，再 `levels:validate` 确认 **190** 条。
-- **可选**：生成耗时统计、按 world 并行、覆盖率阈值、`levels.json` 体积优化。
+- **可选**：生成耗时统计、按 world 并行、`levels.json` 体积优化。
+
+**已实现（前端）**：`levels.json` 加载、棋盘 DOM、选球、四向/滑动、`canMove`、撤销、提示、进度、**链式移动动画**（见 `README.md`「移动动画」、`IMPLEMENTATION_PLAN.md` 阶段 C 补充）。
 
 ---
 
@@ -113,3 +116,4 @@ npm run verify           # test + build + levels:validate
 | 日期 | 说明 |
 |------|------|
 | 2026-04-06 | 初稿：规则、生成逻辑、坑点、命令、下一阶段 |
+| 2026-04-07 | 补充：`computeMovePlan` / `runMoveAnimation`、分层球与样式要点、README「移动动画」 |

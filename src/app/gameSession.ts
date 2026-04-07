@@ -74,6 +74,27 @@ export class GameSession {
   }
 
   /**
+   * 仅压入撤销栈（供动画结束后再 {@link executeMovePhysics}）。
+   */
+  pushUndoSnapshot(): void {
+    if (this.phase !== 'playing') return
+    this.undoStack.push(new Int16Array(this.board.cells))
+  }
+
+  /**
+   * 执行物理一步（不压栈）；调用前须已 {@link pushUndoSnapshot}。
+   */
+  executeMovePhysics(startCell: number, dx: number, dy: number): void {
+    move(this.board, startCell, dx, dy)
+    this.selectedCell = null
+    if (isWon(this.board)) {
+      this.phase = 'won'
+    } else if (isErrorZeroBalls(this.board)) {
+      this.phase = 'lost'
+    }
+  }
+
+  /**
    * 从当前选中球沿 (dx,dy) 发射。成功则更新盘面并刷新 phase。
    * @returns 是否执行了合法一步
    */
@@ -82,15 +103,8 @@ export class GameSession {
     const c = this.selectedCell
     if (!canMove(this.board, c, dx, dy)) return false
 
-    this.undoStack.push(new Int16Array(this.board.cells))
-    move(this.board, c, dx, dy)
-    this.selectedCell = null
-
-    if (isWon(this.board)) {
-      this.phase = 'won'
-    } else if (isErrorZeroBalls(this.board)) {
-      this.phase = 'lost'
-    }
+    this.pushUndoSnapshot()
+    this.executeMovePhysics(c, dx, dy)
     return true
   }
 
@@ -102,15 +116,8 @@ export class GameSession {
     if (this.board.cells[startCell] < 0) return false
     if (!canMove(this.board, startCell, dx, dy)) return false
 
-    this.undoStack.push(new Int16Array(this.board.cells))
-    move(this.board, startCell, dx, dy)
-    this.selectedCell = null
-
-    if (isWon(this.board)) {
-      this.phase = 'won'
-    } else if (isErrorZeroBalls(this.board)) {
-      this.phase = 'lost'
-    }
+    this.pushUndoSnapshot()
+    this.executeMovePhysics(startCell, dx, dy)
     return true
   }
 
@@ -139,10 +146,14 @@ export class GameSession {
   }
 
   /**
-   * 执行 `level.solution` 中与当前局面匹配的「下一步」（与玩家手动走一步等价，可撤销）。
-   * 只调用一次 `findSolutionPrefixDepth`，同时确定「偏离 / 已完成 / 下一步」。
+   * 解析参考解下一步（不改盘面）；供带动画提示前校验。
    */
-  tryApplyPackagedHint(): ApplyHintResult {
+  getPackagedHintStep():
+    | {
+        ok: true
+        step: { startCell: number; dx: number; dy: number }
+      }
+    | { ok: false; reason: HintFailureReason } {
     if (this.phase !== 'playing') return { ok: false, reason: 'not_playing' }
     const sol = this.level.solution
     if (!sol?.length) return { ok: false, reason: 'no_solution' }
@@ -155,16 +166,18 @@ export class GameSession {
     if (!canMove(this.board, step.startCell, step.dx, step.dy)) {
       return { ok: false, reason: 'illegal' }
     }
+    return { ok: true, step }
+  }
 
-    this.undoStack.push(new Int16Array(this.board.cells))
-    move(this.board, step.startCell, step.dx, step.dy)
-    this.selectedCell = null
-
-    if (isWon(this.board)) {
-      this.phase = 'won'
-    } else if (isErrorZeroBalls(this.board)) {
-      this.phase = 'lost'
-    }
+  /**
+   * 执行 `level.solution` 中与当前局面匹配的「下一步」（与玩家手动走一步等价，可撤销）。
+   * 只调用一次 `findSolutionPrefixDepth`，同时确定「偏离 / 已完成 / 下一步」。
+   */
+  tryApplyPackagedHint(): ApplyHintResult {
+    const r = this.getPackagedHintStep()
+    if (!r.ok) return r
+    this.pushUndoSnapshot()
+    this.executeMovePhysics(r.step.startCell, r.step.dx, r.step.dy)
     return { ok: true }
   }
 }

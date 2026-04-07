@@ -38,6 +38,9 @@ Desktop.ini
 *.sln
 *.sw?
 
+# 本地浏览器录屏（勿提交仓库）
+*Chrome*.mp4
+
 # Playwright
 /test-results/
 /playwright-report/
