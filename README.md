@@ -14,7 +14,12 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 2. 启动开发服务：`npm run dev`，浏览器打开终端里提示的地址（一般为 `http://localhost:5173`）
 3. 生产预览：先 `npm run build`，再 `npm run preview`
 
-游戏从 `public/levels.json` 加载 **190 关**（19 个大关 × 10 小关）。无需再执行生成脚本即可游玩。
+游戏从 `public/levels.json` 加载关卡包（当前为 **75 关**：15 个大关 × 5 小关，与 `src/levels/levelIndex.ts` 中 `TOTAL_LEVEL_SLOTS` 一致）。无需再执行生成脚本即可游玩。
+
+### 棋盘尺寸
+
+- 离线生成器 **`scripts/generate-levels.ts`** 将棋盘固定为 **7 列 × 8 行**（`BOARD_W` × `BOARD_H`）；打包进 `levels.json` 的每关 `width` / `height` 均与此相同。
+- 界面按该格网绘制，**棋盘格数不可**在运行时由玩家调整；若将来更换生成器，仍以关卡数据中的 `width`、`height` 为准。
 
 ### 部署后怎么运行（生产环境）
 
@@ -67,7 +72,7 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 
 ### 深链
 
-在地址后加查询参数可直接打开某一槽位，例如：`?level=0`（第 1 关）到 `?level=189`（最后一关）。若该关未解锁，会跳到当前可进入的关。
+在地址后加查询参数可直接打开某一槽位，例如：`?level=0`（第 1 关）到 `?level=74`（最后一关，共 75 槽）。若该关未解锁，会跳到当前可进入的关。
 
 ### 离线重新生成关卡（可选）
 
@@ -95,7 +100,7 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 
 - **`docs/CONTEXT_HANDOFF.md`** — **给下一阶段的上下文摘要（规则、生成、坑点、命令）**  
 - **`docs/PROJECT_RULES.md`** — **项目规则（玩法、关卡、工程约定；跨会话以该文档为准）**  
-- `docs/LEVEL_SPEC.md` — 关卡数据与 190 关结构  
+- `docs/LEVEL_SPEC.md` — 关卡数据与关卡包结构  
 - `docs/IMPLEMENTATION_PLAN.md` — 分阶段实现与配套测试计划  
 - `docs/TEST_TRACEABILITY.md` — 需求与测试对应表  
 

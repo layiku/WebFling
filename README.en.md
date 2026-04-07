@@ -12,7 +12,12 @@ Vite + TypeScript. Board rules match the chained **HOG2** Fling semantics (`src/
 2. Dev server: `npm run dev`, then open the URL shown in the terminal (usually `http://localhost:5173`)
 3. Production preview: `npm run build`, then `npm run preview`
 
-The game loads **190 levels** from `public/levels.json` (19 worlds × 10 stages). No extra generation step is required to play.
+The game loads the level pack from `public/levels.json` (currently **75 levels**: 15 worlds × 5 stages, matching `TOTAL_LEVEL_SLOTS` in `src/levels/levelIndex.ts`). No extra generation step is required to play.
+
+### Board size
+
+- The offline generator **`scripts/generate-levels.ts`** uses a fixed grid of **7 columns × 8 rows** (`BOARD_W` × `BOARD_H`); every level in `levels.json` has the same `width` / `height`.
+- The UI renders that grid; players **cannot** change board dimensions at runtime. If the generator changes in the future, `width` and `height` in each level record remain authoritative.
 
 ### Deploying (production)
 
@@ -67,7 +72,7 @@ A legal move plays **Web Animations API** animation first, then updates board st
 
 ### Deep link
 
-Query `?level=0` (first slot) through `?level=189` (last). If locked, the app jumps to an allowed level.
+Query `?level=0` (first slot) through `?level=74` (last of 75 slots). If locked, the app jumps to an allowed level.
 
 ### Regenerate levels (optional)
 
@@ -95,7 +100,7 @@ First-time E2E: `npm run test:e2e:install` or `npx playwright install chromium`.
 
 - **`docs/CONTEXT_HANDOFF.md`** — handoff notes (rules, generation, pitfalls, commands)  
 - **`docs/PROJECT_RULES.md`** — project rules (gameplay, levels, engineering; source of truth across sessions)  
-- `docs/LEVEL_SPEC.md` — level data and 190-level structure  
+- `docs/LEVEL_SPEC.md` — level data and pack structure  
 - `docs/IMPLEMENTATION_PLAN.md` — phased plan and tests  
 - `docs/TEST_TRACEABILITY.md` — requirements ↔ tests  
 
