@@ -5,6 +5,7 @@ import { renderLoadFailure } from './renderLoadFailure.js'
 
 describe('renderLoadFailure', () => {
   it('uses textContent so HTML in the message is not interpreted', () => {
+    localStorage.setItem('fling-ui-locale', 'zh')
     const root = document.createElement('div')
     const malicious = '<img src=x onerror="window.__xss=1">'
     renderLoadFailure(root, malicious)
@@ -14,6 +15,7 @@ describe('renderLoadFailure', () => {
   })
 
   it('renders shell and muted paragraph', () => {
+    localStorage.setItem('fling-ui-locale', 'zh')
     const root = document.createElement('div')
     renderLoadFailure(root, 'network')
     const main = root.querySelector('main.shell')

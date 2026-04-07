@@ -20,6 +20,15 @@ import {
   setLastPlayed,
   type ProgressStateV1,
 } from './progress.js'
+import {
+  applyDocumentLocale,
+  documentTitle,
+  getUiLocale,
+  hintReasonMessage,
+  setUiLocale,
+  type UiLocale,
+  uiMessages,
+} from './i18n.js'
 
 const SWIPE_MIN_PX = 28
 
@@ -44,6 +53,10 @@ function clampToUnlocked(
  * 将关卡包挂载到容器：选关、棋盘、撤销、滑动发射、方向键、提示、进度。
  */
 export function mountGame(root: HTMLElement, pack: LevelPack): void {
+  let locale: UiLocale = getUiLocale()
+  applyDocumentLocale(locale)
+  document.title = documentTitle(locale)
+
   let progress = loadProgress(localStorage, pack.rulesVersion)
 
   const paramsInit = new URLSearchParams(window.location.search)
@@ -74,7 +87,16 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
 
   const subtitle = document.createElement('p')
   subtitle.className = 'game-subtitle muted'
-  subtitle.textContent = '彩色圆形毛绒球（5 色循环）'
+
+  const headerTop = document.createElement('div')
+  headerTop.className = 'game-header-top'
+  const headerBrand = document.createElement('div')
+  headerBrand.className = 'game-header-brand'
+  const langWrap = document.createElement('div')
+  langWrap.className = 'game-lang'
+  const langBtn = document.createElement('button')
+  langBtn.type = 'button'
+  langBtn.className = 'btn btn-lang'
 
   const nav = document.createElement('div')
   nav.className = 'game-nav'
@@ -121,12 +143,37 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
 
   const hint = document.createElement('p')
   hint.className = 'game-hint muted'
-  hint.textContent =
-    '点选毛球后，用方向键或滑动发射；仅当与 HOG2 规则一致时可走。'
 
+  headerBrand.append(title, subtitle)
+  langWrap.appendChild(langBtn)
+  headerTop.append(headerBrand, langWrap)
   nav.append(prevBtn, levelLabel, nextBtn)
   toolbar.append(undoBtn, restartBtn, hintBtn)
-  header.append(title, subtitle, nav, toolbar, statusEl, hintLine)
+  header.append(headerTop, nav, toolbar, statusEl, hintLine)
+
+  function refreshChromeStrings(): void {
+    const m = uiMessages(locale)
+    subtitle.textContent = m.subtitle
+    prevBtn.textContent = m.prevLevel
+    nextBtn.textContent = m.nextLevel
+    undoBtn.textContent = m.undo
+    restartBtn.textContent = m.restart
+    hintBtn.textContent = m.hintStep
+    hint.textContent = m.bottomHint
+    langBtn.textContent =
+      locale === 'zh' ? m.langButtonShowEn : m.langButtonShowZh
+    langBtn.setAttribute('aria-label', m.langSwitchAria)
+    document.title = documentTitle(locale)
+  }
+
+  langBtn.addEventListener('click', () => {
+    locale = locale === 'zh' ? 'en' : 'zh'
+    setUiLocale(locale)
+    refreshChromeStrings()
+    renderAll()
+  })
+
+  refreshChromeStrings()
   root.append(header, boardWrap, hint)
 
   const boardFrame = document.createElement('div')
@@ -229,14 +276,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   }
 
   function hintMessage(reason: string): void {
-    const map: Record<string, string> = {
-      no_solution: '本关没有参考解法数据。',
-      off_path: '当前局面与参考解法不一致，请撤销或重开。',
-      done: '参考步已用完。',
-      not_playing: '请先重开对局。',
-      illegal: '提示步无法执行（数据异常）。',
-    }
-    hintLine.textContent = map[reason] ?? reason
+    hintLine.textContent = hintReasonMessage(locale, reason)
     hintLine.hidden = false
   }
 
@@ -247,7 +287,8 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     if (merged) persistProgress()
 
     const { world, stage } = levelFromIndex(idx)
-    levelLabel.textContent = `第 ${world} 大关 · 第 ${stage} 小关 · ${pack.levels[idx]!.id}`
+    const m = uiMessages(locale)
+    levelLabel.textContent = m.levelLabel(world, stage, pack.levels[idx]!.id)
     undoBtn.disabled = !session.canUndo() || moveAnimating
     prevBtn.disabled = idx <= 0 || moveAnimating
     nextBtn.disabled =
@@ -255,15 +296,15 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     hintBtn.disabled = ph !== 'playing' || moveAnimating
 
     if (ph === 'won') {
-      statusEl.textContent = '胜利：只剩一球'
+      statusEl.textContent = m.statusWon
       statusEl.classList.remove('status-bad')
       statusEl.classList.add('status-good')
     } else if (ph === 'lost') {
-      statusEl.textContent = '无效局面（0 球）— 请撤销或重开'
+      statusEl.textContent = m.statusLost
       statusEl.classList.remove('status-good')
       statusEl.classList.add('status-bad')
     } else {
-      statusEl.textContent = `剩余 ${countOccupiedCells(session.getBoard())} 球`
+      statusEl.textContent = m.remainingBalls(countOccupiedCells(session.getBoard()))
       statusEl.classList.remove('status-good', 'status-bad')
     }
     renderBoard()
@@ -312,7 +353,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
       cell.dataset.index = String(i)
       cell.setAttribute(
         'aria-label',
-        buildCellAriaLabel(col, row, id, i, sel),
+        buildCellAriaLabel(col, row, id, i, sel, locale),
       )
       if (id >= 0) {
         cell.classList.add('cell-ball')

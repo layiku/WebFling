@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('fling-ui-locale', 'zh')
+  })
+})
+
 /**
  * 第一槽位 w2-s1：两球一步可胜；用「提示一步」执行 pack 内参考步。
  */

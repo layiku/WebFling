@@ -1,6 +1,10 @@
 # Fling Web（网页复刻）
 
+**语言 / Languages:** [English](README.en.md)
+
 Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flingBoard.ts`）。
+
+游戏界面右上角 **EN / 中文** 可切换中英文；偏好保存在浏览器 `localStorage`（键 `fling-ui-locale`）。
 
 ## 使用说明
 
