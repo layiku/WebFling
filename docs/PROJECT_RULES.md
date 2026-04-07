@@ -45,15 +45,16 @@
 
 ### 3.1 规模与结构
 
-- 球数 **N** 取值 **2 … 20** → **19 个大关**（World），不是 20 个。
-- 每个大关含 **10** 个小关（Stage **1 … 10**）。
-- 总固定槽位：**19 × 10 = 190** 关；每槽对应**唯一预生成**初始局面。
+- 球数 **N** 取值 **2 … 16** → **15 个大关**（World），见 `src/levels/levelIndex.ts`（`MIN_WORLD_BALLS`…`MAX_WORLD_BALLS`）。
+- 每个大关含 **5** 个小关（Stage **1 … 5**，`STAGES_PER_WORLD`）。
+- 总固定槽位：**15 × 5 = 75** 关；每槽对应**唯一预生成**初始局面。
 - **大关编号 = N**（该大关内所有小关的初始球数均为 **N**）。
+- **棋盘格数（当前生成器）**：`scripts/generate-levels.ts` 固定 **7×8**；每关 JSON 的 `width` / `height` 与此一致。
 
 ### 3.2 标识与索引
 
 - 关卡字符串 id：`w{N}-s{S}`（例：`w7-s3`）。
-- 线性下标 **0 … 189**：行优先，先 `w2-s1…s10`，再 `w3-s1…`，直至 `w20-s10`。详见 `src/levels/levelIndex.ts`。
+- 线性下标 **0 … 74**：行优先，先 `w2-s1…s5`，再 `w3-s1…`，直至 `w16-s5`。详见 `src/levels/levelIndex.ts`。
 
 ### 3.3 难度（用于排序与选关）
 
@@ -62,13 +63,13 @@
 - **N 相同**：**S 越小越简单**。
 - **S 相同**：**N 越小越简单**。
 
-同一 world 内 10 小关建议 **S 非降**（通常严格递增）；若无法满足须在数据或文档中说明。
+同一 world 内 5 小关建议 **S 非降**（通常严格递增）；若无法满足须在数据或文档中说明。
 
 ### 3.4 关卡数据
 
 - 运行时加载 **`public/levels.json`**（或由 CI/后台产出后部署的等价 URL）。
 - JSON 形状见 `src/levels/schema.ts`；版本字段 **`rulesVersion`**：只要 **§2** 的移动语义变更，须递增并重算或废弃旧包。
-- 详细字段与非法终局约定见 `docs/LEVEL_SPEC.md`。
+- 详细字段、拓扑与非法终局约定见 `docs/LEVEL_SPEC.md`。
 
 ---
 
@@ -98,18 +99,24 @@
 - **样式**：`.board .cell` 使用 `touch-action: none`，减少浏览器把触摸当成滚动而 `pointercancel`。
 - **健壮性**：新 `pointerdown` 清理上一组 `window` 上的 `pointerup`/`pointercancel`；`pointerId` 过滤多指。详见 `README.md`「指针与触摸」与 `docs/CONTEXT_HANDOFF.md` §7。
 
+### 4.6 界面语言（i18n）
+
+- **中文 / 英文**文案在 `src/app/i18n.ts`；偏好键 **`fling-ui-locale`**（`zh` | `en`），存 `localStorage`。
+- 与规则无关：仅影响 UI 与读屏 `aria-label`；`README.md` / `README.en.md` 互链。
+
 ---
 
 ## 5. 相关文件索引
 
 | 文件 | 内容 |
 |------|------|
-| `docs/LEVEL_SPEC.md` | JSON 字段、190 关细节 |
+| `docs/LEVEL_SPEC.md` | JSON 字段、75 关拓扑与 7×8 棋盘约定 |
 | `docs/IMPLEMENTATION_PLAN.md` | 分阶段任务 |
 | `docs/TEST_TRACEABILITY.md` | 需求 ↔ 测试表 |
 | `src/game/flingBoard.ts` | 可执行规则；`computeMovePlan` 供动画预计算 |
 | `src/app/runMoveAnimation.ts` | 一步移动的 WAAPI 动画编排 |
-| `src/levels/levelIndex.ts` | 关卡 id 与下标 |
+| `src/levels/levelIndex.ts` | 关卡 id 与下标（75 槽） |
+| `src/app/i18n.ts` | 界面文案与中英文切换 |
 
 ---
 
@@ -121,3 +128,4 @@
 | 2026-04-06 | `verify` / `verify:all`、覆盖率阈值与 E2E 说明 |
 | 2026-04-07 | §4.4 移动动画与规则边界；文件索引补充 `computeMovePlan` / `runMoveAnimation` |
 | 2026-04-08 | §4.4 `swapToPlush`；§4.5 指针/触摸（README「指针与触摸」） |
+| 2026-04-09 | §3 与 `LEVEL_SPEC` 对齐：15×5=75 关、N 2…16、棋盘 7×8；§4.6 i18n |

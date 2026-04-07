@@ -9,11 +9,11 @@
 | HOG2 `move`：链式传递、出界移除 | 已实现 | `flingBoard.test.ts` → `move (chain + exit)` |
 | 独球不能直接击出界（`canMove` 为 false） | 已实现 | `flingBoard.test.ts` → `does not allow a lone ball...` |
 | 胜负：恰好 1 球为胜；0 球为错误态 | 已实现 | `flingBoard.test.ts` → `win / error counts` |
-| 19 世界 × 10 阶段 = 190 槽位 | 已实现 | `levelIndex.test.ts` |
+| 15 世界 × 5 阶段 = 75 槽位 | 已实现 | `levelIndex.test.ts` |
 | `wN-sS` key 与线性下标互转 | 已实现 | `levelIndex.test.ts` |
 | 空关卡包生成脚本可运行 | 已实现 | `generate-levels.test.ts` + 手动 `npm run levels:generate` |
 | 前向生成 + DFS 可解关卡（`reverseGen`） | 已实现 | `reverseGen.test.ts` |
-| 190 关填满 + `levels:validate` | 已实现 | `validate-level-pack.test.ts` + 手动 `npm run levels:validate` |
+| 75 关填满 + `levels:validate` | 已实现 | `validate-level-pack.test.ts` + 手动 `npm run levels:validate` |
 | 加载 `levels.json` | 已实现 | `loadLevels.test.ts` |
 | 手势解析（滑向四向） | 已实现 | `swipe.test.ts` |
 | 撤销 | 已实现 | `gameSession.test.ts` → `undo restores` |
@@ -22,6 +22,7 @@
 | 胜利后「下一关」解锁（须先 merge `cleared` 再判断） | 已实现 | `progress.test.ts` → `胜利后「下一关」导航` |
 | 覆盖率阈值（Vitest v8） | 已实现 | `npm run coverage` + `vite.config.ts` → `thresholds` |
 | E2E（第一关通关） | 已实现 | `e2e/first-level.spec.ts`（Playwright） |
+| 中英文 UI（`i18n`） | 已实现 | `i18n.test.ts` |
 
 ## 如何检查「每个功能都有测试」
 

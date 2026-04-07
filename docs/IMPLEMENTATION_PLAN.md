@@ -9,7 +9,7 @@
 | 功能 | 实现位置 | 测试 |
 |------|-----------|------|
 | HOG2 链式移动 / 相邻间隔判定 | `src/game/flingBoard.ts` | `src/game/flingBoard.test.ts` |
-| 19×10 关卡索引与 key | `src/levels/levelIndex.ts` | `src/levels/levelIndex.test.ts` |
+| 15×5 关卡索引与 key（75 槽） | `src/levels/levelIndex.ts` | `src/levels/levelIndex.test.ts` |
 | 空关卡包占位生成 | `scripts/generate-levels.ts` | `scripts/generate-levels.test.ts` |
 
 **验证清单（阶段 A）**
@@ -28,8 +28,8 @@ npm run levels:generate
 | 任务 | 说明 | 测试 |
 |------|------|------|
 | B1 反向生成 | 从 1 球起反向加球，保证可解；记录 `solution` 与 `stepCount` | `src/game/generator.test.ts`（属性/小棋盘用例） |
-| B2 按难度填槽 | 对每个 (N, stage 1…10) 选 S 非降；失败时放宽棋盘或重试 | `generator` 集成测试 + 黄金样例 JSON |
-| B3 写入 `LevelPack` | 190 条记录、`rulesVersion`、校验无重复 id | `scripts/validate-level-pack.test.ts`（读入 JSON 断言） |
+| B2 按难度填槽 | 对每个 (N, stage 1…5) 选 S 非降；失败时放宽或重试 | `generator` 集成测试 + 黄金样例 JSON |
+| B3 写入 `LevelPack` | 75 条记录（与 `TOTAL_LEVEL_SLOTS` 一致）、`rulesVersion`、校验无重复 id | `scripts/validate-level-pack.test.ts`（读入 JSON 断言） |
 
 ---
 
@@ -44,6 +44,7 @@ npm run levels:generate
 | C5 撤销 | 栈保存 `FlingBoard` 克隆 | `undo.test.ts` |
 | C6 胜利 / 非法 0 球 | UI 文案与流程 | 与 `flingBoard` 复用断言 |
 | C7 移动动画 | 链式一步的滚动 / 撞击 / 飞出：WAAPI；`computeMovePlan` 预计算；幽灵格；滚动中分层球（高光固定、球面旋转），停球/停驻时 `swapToPlush` 与 `.ball-plush` 对齐；动画结束后再 `move` | `flingBoard.test.ts`（`computeMovePlan`） |
+| C8 中英文 UI | `src/app/i18n.ts`；`localStorage` `fling-ui-locale`；读屏与按钮文案 | `src/app/i18n.test.ts` |
 
 ---
 
@@ -77,7 +78,7 @@ npm run levels:generate
 
 ## 里程碑顺序建议
 
-1. 阶段 B 完成 → `public/levels.json` 含 190 关且通过校验脚本。  
+1. 阶段 B 完成 → `public/levels.json` 含 75 关且通过校验脚本。  
 2. 阶段 C1–C4 → 可玩固定关卡。  
 3. C5、D1、D2 → 体验完整。  
 4. 阶段 E：覆盖率阈值 + `levels:validate` + 可选 E2E（已接入）。
