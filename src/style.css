@@ -210,6 +210,14 @@ code {
   user-select: none;
 }
 
+/*
+ * touch-action: none 阻止浏览器把指针事件解释为滚动/缩放，
+ * 避免 pointercancel 吞掉滑动手势导致游戏"卡死"。
+ */
+.board .cell {
+  touch-action: none;
+}
+
 .ball-move-ghost {
   z-index: 8;
   box-sizing: border-box;

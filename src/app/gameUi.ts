@@ -328,44 +328,67 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     }
   }
 
-  boardEl.addEventListener('click', (ev) => {
-    if (moveAnimating) return
-    const t = (ev.target as HTMLElement).closest('button.cell') as
-      | HTMLButtonElement
-      | null
-    if (!t) return
-    const i = Number(t.dataset.index)
-    session.selectCell(i)
-    renderAll()
-  })
+  /**
+   * 当前活跃的滑动追踪：只允许同时存在一组 pointerup/pointercancel 监听。
+   * 新的 pointerdown 会先清理上一组，防止旧回调泄漏导致卡死。
+   */
+  let swipeCleanup: (() => void) | null = null
 
   boardEl.addEventListener('pointerdown', (ev) => {
+    swipeCleanup?.()
+    swipeCleanup = null
+
     if (moveAnimating) return
-    if (session.getPhase() !== 'playing') return
+
     const t = (ev.target as HTMLElement).closest('button.cell') as
       | HTMLButtonElement
       | null
     if (!t) return
     const cell = Number(t.dataset.index)
-    if (session.getBoard().cells[cell] < 0) return
-    const start = { cell, x: ev.clientX, y: ev.clientY }
+
+    // 空格点击 → 取消选中（无需追踪滑动）
+    if (session.getBoard().cells[cell]! < 0) {
+      session.selectCell(cell)
+      renderAll()
+      return
+    }
+
+    // 阻止浏览器把触摸解释为滚动/长按菜单，避免 pointercancel 吞掉手势
+    ev.preventDefault()
+
+    const pid = ev.pointerId
+    const startX = ev.clientX
+    const startY = ev.clientY
+
     const cleanup = (): void => {
       window.removeEventListener('pointerup', onUp)
       window.removeEventListener('pointercancel', onCancel)
+      if (swipeCleanup === cleanup) swipeCleanup = null
     }
     const onUp = (e: PointerEvent): void => {
+      if (e.pointerId !== pid) return
       cleanup()
-      const ddx = e.clientX - start.x
-      const ddy = e.clientY - start.y
-      const dir = pixelDeltaToDirection(ddx, ddy, SWIPE_MIN_PX)
-      if (!dir) return
-      void playMoveWithAnimation(start.cell, dir.dx, dir.dy)
+      if (moveAnimating) return
+      const dir = pixelDeltaToDirection(
+        e.clientX - startX,
+        e.clientY - startY,
+        SWIPE_MIN_PX,
+      )
+      if (dir && session.getPhase() === 'playing') {
+        void playMoveWithAnimation(cell, dir.dx, dir.dy)
+      } else {
+        // 位移不足判定为轻触 → 选中该球
+        session.selectCell(cell)
+        renderAll()
+      }
     }
-    const onCancel = (): void => {
+    const onCancel = (e: PointerEvent): void => {
+      if (e.pointerId !== pid) return
       cleanup()
     }
     window.addEventListener('pointerup', onUp)
     window.addEventListener('pointercancel', onCancel)
+    swipeCleanup = cleanup
   })
 
   window.addEventListener('keydown', (ev) => {

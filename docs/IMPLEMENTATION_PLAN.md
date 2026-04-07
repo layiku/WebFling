@@ -39,7 +39,7 @@ npm run levels:generate
 |------|------|------|
 | C1 加载 `levels.json` | fetch + 解析 | `src/app/loadLevels.test.ts`（mock fetch） |
 | C2 棋盘渲染 | DOM 或 Canvas；由 `piecePositions` 驱动 | 组件/快照或截图测试（可选 Playwright 后期） |
-| C3 选中球 + 四向 / 滑动手势 | 状态机；与 `canMove` 一致 | `src/input/swipe.test.ts`（手势解析纯函数） |
+| C3 选中球 + 四向 / 滑动手势 | Pointer Events：`pointerup` 分支选球或发射；`touch-action` / `preventDefault` / 监听器清理 | `src/input/swipe.test.ts`（手势解析纯函数） |
 | C4 执行步 | 仅当 `canMove` 为真调用 `move` | `src/app/applyMove.test.ts` |
 | C5 撤销 | 栈保存 `FlingBoard` 克隆 | `undo.test.ts` |
 | C6 胜利 / 非法 0 球 | UI 文案与流程 | 与 `flingBoard` 复用断言 |

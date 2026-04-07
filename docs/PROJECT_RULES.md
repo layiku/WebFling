@@ -92,6 +92,12 @@
 - **规则权威仍在** `src/game/flingBoard.ts`：`canMove` / `move` 不变。
 - **动画**仅负责展示：一步内链式片段由 `computeMovePlan` 预计算（与 `move` 语义一致），`src/app/runMoveAnimation.ts` 用 WAAPI 播放后再由会话层调用 `move` 提交局面。滚动中用分层 DOM 表现旋转；球停下或撞击后占位时替换为 `.ball-plush`，与真实格一致、避免色差。详见 `README.md`「移动动画」。
 
+### 4.5 棋盘输入（指针 / 触摸）
+
+- **选球与滑动**由同一套 Pointer Events 在 `pointerup` 分支判定（位移不足为选球，足够为发射），不再依赖独立的 `click`，避免与动画状态竞态。
+- **样式**：`.board .cell` 使用 `touch-action: none`，减少浏览器把触摸当成滚动而 `pointercancel`。
+- **健壮性**：新 `pointerdown` 清理上一组 `window` 上的 `pointerup`/`pointercancel`；`pointerId` 过滤多指。详见 `README.md`「指针与触摸」与 `docs/CONTEXT_HANDOFF.md` §7。
+
 ---
 
 ## 5. 相关文件索引
@@ -114,4 +120,4 @@
 | 2026-04-06 | 初版：HOG2 链式规则、19×10 固定关、难度序、工程约定 |
 | 2026-04-06 | `verify` / `verify:all`、覆盖率阈值与 E2E 说明 |
 | 2026-04-07 | §4.4 移动动画与规则边界；文件索引补充 `computeMovePlan` / `runMoveAnimation` |
-| 2026-04-08 | §4.4：停球时 `swapToPlush` 与 `.ball-plush` 对齐，避免分层与单层渐变色差 |
+| 2026-04-08 | §4.4 `swapToPlush`；§4.5 指针/触摸（README「指针与触摸」） |

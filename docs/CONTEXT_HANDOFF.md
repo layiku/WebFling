@@ -87,6 +87,9 @@ npm run verify           # test + build + levels:validate
 4. **关卡条数与校验**  
    `validateLevelPack(pack, expectedCount)` 第二个参数默认 **190**；若只生成部分 world，需传 **实际条数**（如 30），否则会报数量不符。
 
+5. **棋盘触摸 / 指针**  
+   触摸设备上若未设置 `touch-action: none`，浏览器可能把滑动当成滚动并 `pointercancel`，表现为滑动无反应。`gameUi` 用单次 `pointerdown`→`pointerup` 判定选球或发射，新 `pointerdown` 须清理上一组 window 监听，避免泄漏导致偶发卡死。详见 `README.md`「指针与触摸」。
+
 ---
 
 ## 8. 文档索引
@@ -117,4 +120,4 @@ npm run verify           # test + build + levels:validate
 |------|------|
 | 2026-04-06 | 初稿：规则、生成逻辑、坑点、命令、下一阶段 |
 | 2026-04-07 | 补充：`computeMovePlan` / `runMoveAnimation`、分层球与样式要点、README「移动动画」 |
-| 2026-04-08 | 停球/停驻：`swapToPlush`（分层 → `.ball-plush`）消除与真实格之间的色差跳变 |
+| 2026-04-08 | `swapToPlush` 色差；指针：`touch-action`、选球/滑动合并、`pointerId`、监听器清理 |
