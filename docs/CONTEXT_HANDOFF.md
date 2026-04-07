@@ -103,7 +103,8 @@ npm run verify           # test + coverage + build + levels:validate（见 packa
 | [`LEVEL_SPEC.md`](LEVEL_SPEC.md) | JSON、75 关拓扑、7×8 棋盘 |
 | [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) | 分阶段计划（A 完成；B 生成/校验；C 前端…） |
 | [`TEST_TRACEABILITY.md`](TEST_TRACEABILITY.md) | 需求 ↔ 测试表 |
-| [`README.md`](../README.md) | 命令与目录入口 |
+| [`README.md`](../README.md) | 命令与目录入口（中文） |
+| [`README.en.md`](../README.en.md) | English readme |
 
 ---
 
@@ -125,3 +126,4 @@ npm run verify           # test + coverage + build + levels:validate（见 packa
 | 2026-04-07 | 补充：`computeMovePlan` / `runMoveAnimation`、分层球与样式要点、README「移动动画」 |
 | 2026-04-08 | `swapToPlush` 色差；指针：`touch-action`、选球/滑动合并、`pointerId`、监听器清理 |
 | 2026-04-09 | 关卡规模 75、棋盘 7×8、校验默认条数；i18n；与 `LEVEL_SPEC` / `PROJECT_RULES` 对齐 |
+| 2026-04-10 | 文档索引补充 `README.en.md`；与根 README 文档节交叉引用 |

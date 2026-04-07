@@ -98,16 +98,18 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 
 ## 文档
 
+**关卡槽位数、棋盘 7×8 等数据以 `docs/LEVEL_SPEC.md` 与 `docs/PROJECT_RULES.md` §3 为准**（与 `src/levels/levelIndex.ts`、生成脚本一致）。
+
 - **`docs/CONTEXT_HANDOFF.md`** — **给下一阶段的上下文摘要（规则、生成、坑点、命令）**  
 - **`docs/PROJECT_RULES.md`** — **项目规则（玩法、关卡、工程约定；跨会话以该文档为准）**  
-- `docs/LEVEL_SPEC.md` — 关卡数据与关卡包结构  
+- `docs/LEVEL_SPEC.md` — 关卡 JSON、75 关拓扑与棋盘约定  
 - `docs/IMPLEMENTATION_PLAN.md` — 分阶段实现与配套测试计划  
 - `docs/TEST_TRACEABILITY.md` — 需求与测试对应表  
 
 ## 目录
 
 - `src/game/` — 规则内核（含 `computeMovePlan` 供动画预计算）  
-- `src/app/` — 界面与对局（含 `runMoveAnimation.ts` 移动动画）  
+- `src/app/` — 界面与对局（`runMoveAnimation.ts`、`i18n.ts` 等）  
 - `src/levels/` — 关卡索引与 JSON 类型  
 - `scripts/` — 离线生成器等  
 - `public/levels.json` — 运行时关卡包（由生成脚本产出）  

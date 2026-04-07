@@ -98,9 +98,11 @@ First-time E2E: `npm run test:e2e:install` or `npx playwright install chromium`.
 
 ## Documentation
 
+**Level count, 7×8 board, and related numbers are defined in `docs/LEVEL_SPEC.md` and `docs/PROJECT_RULES.md` §3** (aligned with `src/levels/levelIndex.ts` and the generator).
+
 - **`docs/CONTEXT_HANDOFF.md`** — handoff notes (rules, generation, pitfalls, commands)  
 - **`docs/PROJECT_RULES.md`** — project rules (gameplay, levels, engineering; source of truth across sessions)  
-- `docs/LEVEL_SPEC.md` — level data and pack structure  
+- `docs/LEVEL_SPEC.md` — level JSON, 75-level topology, board size  
 - `docs/IMPLEMENTATION_PLAN.md` — phased plan and tests  
 - `docs/TEST_TRACEABILITY.md` — requirements ↔ tests  
 

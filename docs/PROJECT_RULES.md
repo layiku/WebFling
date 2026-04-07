@@ -71,6 +71,10 @@
 - JSON 形状见 `src/levels/schema.ts`；版本字段 **`rulesVersion`**：只要 **§2** 的移动语义变更，须递增并重算或废弃旧包。
 - 详细字段、拓扑与非法终局约定见 `docs/LEVEL_SPEC.md`。
 
+### 3.5 开源许可证
+
+- 本项目以 **MIT License** 发布；全文见仓库根目录 **`LICENSE`**，与 **`package.json`** 的 `license` 字段一致。
+
 ---
 
 ## 4. 工程与质量规则
@@ -129,3 +133,4 @@
 | 2026-04-07 | §4.4 移动动画与规则边界；文件索引补充 `computeMovePlan` / `runMoveAnimation` |
 | 2026-04-08 | §4.4 `swapToPlush`；§4.5 指针/触摸（README「指针与触摸」） |
 | 2026-04-09 | §3 与 `LEVEL_SPEC` 对齐：15×5=75 关、N 2…16、棋盘 7×8；§4.6 i18n |
+| 2026-04-10 | §3.5 MIT 许可证；README 文档节与 `LEVEL_SPEC` 交叉引用 |
