@@ -36,7 +36,7 @@
 | 区域 | 路径 | 说明 |
 |------|------|------|
 | 棋盘内核 | `src/game/flingBoard.ts` | `canMove` / `move` / `createBoard`；`computeMovePlan`（动画预计算，与 `move` 一致） |
-| 移动动画 | `src/app/runMoveAnimation.ts` | WAAPI：`roll` / `impact` / `flyOff`；幽灵格 + 分层球；由 `gameUi` 在应用 `move` 前调用 |
+| 移动动画 | `src/app/runMoveAnimation.ts` | WAAPI：`roll` / `impact` / `flyOff`；幽灵格；滚动中分层球，停驻时 `swapToPlush` 换 `.ball-plush` 与静止球像素一致；由 `gameUi` 在应用 `move` 前调用 |
 | 反向生成 | `src/game/reverseGen.ts` | `tryReverseAddBall`、`generateLevel`、回放与校验 |
 | 关卡索引 | `src/levels/levelIndex.ts` | 19×10、key、下标 |
 | 离线生成 | `scripts/generate-levels.ts` | `buildPack`、`collectLevelsForWorld`；**勿在 Vitest 里直接 import 后无 guard 执行 main** |
@@ -117,3 +117,4 @@ npm run verify           # test + build + levels:validate
 |------|------|
 | 2026-04-06 | 初稿：规则、生成逻辑、坑点、命令、下一阶段 |
 | 2026-04-07 | 补充：`computeMovePlan` / `runMoveAnimation`、分层球与样式要点、README「移动动画」 |
+| 2026-04-08 | 停球/停驻：`swapToPlush`（分层 → `.ball-plush`）消除与真实格之间的色差跳变 |

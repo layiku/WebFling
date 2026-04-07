@@ -1,4 +1,5 @@
 import type { MoveAnimSegment } from '../game/flingBoard.js'
+import { ballPlushClass } from './ballPlush.js'
 
 function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms))
@@ -86,6 +87,20 @@ function makeGhost(
   return wrapper
 }
 
+/**
+ * 把幽灵内部的三层结构（ball-shell > ball-surface + ball-gloss）
+ * 替换为与静止球完全一致的 .ball-plush。
+ * 用于滚动结束后 / 停驻球，消除三层叠加与单层渐变之间的色差跳变。
+ */
+function swapToPlush(ghost: HTMLDivElement, pieceId: number): void {
+  const shell = ghost.querySelector('.ball-shell')
+  if (shell) shell.remove()
+  const plush = document.createElement('span')
+  plush.className = `ball-plush ${ballPlushClass(pieceId)}`
+  plush.setAttribute('aria-hidden', 'true')
+  ghost.appendChild(plush)
+}
+
 /** 滑动幽灵移除后，停球格尚无真实 plush（棋盘尚未 apply move），用静止幽灵占位 */
 function showParkedStriker(
   boardEl: HTMLElement,
@@ -95,6 +110,7 @@ function showParkedStriker(
   const cs = actualCellSize(boardEl, strikerStopCell)
   const tl = cellTopLeft(boardEl, strikerStopCell)
   const g = makeGhost(boardEl, strikerId, tl.x, tl.y, cs)
+  swapToPlush(g, strikerId)
   g.classList.add(PARKED_STRIKER_CLASS)
 }
 
@@ -160,6 +176,7 @@ async function animateRollSegment(
     { duration, easing: 'ease-out', fill: 'forwards' },
   )
   await Promise.all([aWrapper.finished, aSurface.finished])
+  swapToPlush(ghost, seg.pieceId)
   return ghost
 }
 

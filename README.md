@@ -48,7 +48,8 @@ Vite + TypeScript。棋盘规则对齐 **HOG2** 的链式 Fling（`src/game/flin
 | 要点 | 说明 |
 |------|------|
 | 预计算 | `computeMovePlan`（`src/game/flingBoard.ts`）在不改盘面的前提下，生成 `roll` / `impact` / `flyOff` 片段序列，与 `move()` 语义一致。 |
-| 播放 | `src/app/runMoveAnimation.ts`：幽灵格子（灰色背景随球平移）、分层球体（`ball-surface` 按滚动方向旋转，`ball-gloss` 固定左上角高光）。 |
+| 播放 | `src/app/runMoveAnimation.ts`：幽灵格子（灰色背景随球平移）、**滚动中**用分层球体（`ball-surface` 按滚动方向旋转，`ball-gloss` 固定左上角高光）。 |
+| 静止对齐 | 滚动结束、撞击后停驻占位时，将内层替换为与棋盘完全相同的 **`.ball-plush`**（`swapToPlush`），避免「分层叠加渐变」与「单层渐变」在数学上不等价导致的**停球瞬间色差**。飞出动画仍用分层直至淡出。 |
 | 缓动 | 滑向目标为 `ease-out`；被撞飞出为 `ease-out`（避免起步停顿）；透明度在飞出后半段再淡出。 |
 | 样式 | `src/style.css`：外圈彩色光晕用 `box-shadow` + `--glow`，避免 `filter: blur` 首帧与静止球不一致的闪烁。 |
 
