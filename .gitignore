@@ -13,6 +13,20 @@ dist-ssr
 coverage
 *.local
 
+# Secrets & local env（勿提交密钥；若需示例可保留并跟踪 `.env.example`）
+.env
+.env.*
+!.env.example
+
+# TypeScript / 工具缓存
+*.tsbuildinfo
+.vite
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
