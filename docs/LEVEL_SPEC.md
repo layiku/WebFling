@@ -12,7 +12,7 @@
 - **大关（World）**：球数 **N = 2 … 16**，共 **15** 个大关（`WORLD_COUNT`）。
 - **小关（Stage）**：每个大关 **5** 个小关，编号 **1 … 5**（`STAGES_PER_WORLD`）。
 - **总槽位**：15 × 5 = **75** 关；每槽位对应唯一固定局面（预生成，运行时不再随机）。
-- **棋盘格数（当前生成器）**：离线脚本 **`scripts/generate-levels.ts`** 将棋盘固定为 **7 列 × 8 行**（`BOARD_W` × `BOARD_H`）；`levels.json` 中每关的 `width` / `height` 与此一致。
+- **棋盘格数（当前生成器）**：离线脚本 **`scripts/generate-levels.ts`** 将棋盘固定为 **7 列 × 8 行**（`BOARD_W` × `BOARD_H`）；`levels.json` 中每关的 `width` / `height` 与此一致。算法与命令见 [`LEVEL_GENERATION.md`](./LEVEL_GENERATION.md)。
 
 ## 标识符
 

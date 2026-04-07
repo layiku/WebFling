@@ -49,7 +49,7 @@
 - 每个大关含 **5** 个小关（Stage **1 … 5**，`STAGES_PER_WORLD`）。
 - 总固定槽位：**15 × 5 = 75** 关；每槽对应**唯一预生成**初始局面。
 - **大关编号 = N**（该大关内所有小关的初始球数均为 **N**）。
-- **棋盘格数（当前生成器）**：`scripts/generate-levels.ts` 固定 **7×8**；每关 JSON 的 `width` / `height` 与此一致。
+- **棋盘格数（当前生成器）**：`scripts/generate-levels.ts` 固定 **7×8**；每关 JSON 的 `width` / `height` 与此一致。离线生成流程见 `docs/LEVEL_GENERATION.md`。
 
 ### 3.2 标识与索引
 

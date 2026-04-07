@@ -136,6 +136,7 @@ First-time E2E: `npm run test:e2e:install` or `npx playwright install chromium`.
 
 - **`docs/CONTEXT_HANDOFF.md`** — handoff notes (rules, generation, pitfalls, commands)  
 - **`docs/PROJECT_RULES.md`** — project rules (gameplay, levels, engineering; source of truth across sessions)  
+- **`docs/LEVEL_GENERATION.md`** — offline level generation (algorithm, pipeline, commands; why forward DFS vs reverse)  
 - `docs/LEVEL_SPEC.md` — level JSON, 75-level topology, board size  
 - `docs/IMPLEMENTATION_PLAN.md` — phased plan and tests  
 - `docs/TEST_TRACEABILITY.md` — requirements ↔ tests  

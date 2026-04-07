@@ -8,7 +8,7 @@
 
 - **目标**：在浏览器里复刻 iOS 类 **Fling** 谜题（网格、四向发射、**HOG2 链式**碰撞、球打出界直至剩 1 球）。
 - **技术栈**：Vite + TypeScript；逻辑可单测（Vitest）；关卡 **预生成 JSON**，运行时**不随机生成关卡**。
-- **仓库根**：`c:\coding\FlingInC`（或你的克隆路径）。
+- **仓库根**：以本机克隆路径为准（当前工作区常为 `WebFling`）。
 
 ---
 
@@ -39,7 +39,7 @@
 |------|------|------|
 | 棋盘内核 | `src/game/flingBoard.ts` | `canMove` / `move` / `createBoard`；`computeMovePlan`（动画预计算，与 `move` 一致） |
 | 移动动画 | `src/app/runMoveAnimation.ts` | WAAPI：`roll` / `impact` / `flyOff`；幽灵格；滚动中分层球，停驻时 `swapToPlush` 换 `.ball-plush` 与静止球像素一致；由 `gameUi` 在应用 `move` 前调用 |
-| 反向生成 | `src/game/reverseGen.ts` | `tryReverseAddBall`、`generateLevel`、回放与校验 |
+| 关卡生成（核心） | `src/game/reverseGen.ts` | **`generateLevel`**：随机初局 + 有界 **DFS** 求 `solution`；**`tryReverseAddBall`** 保留供测试，打包主路径不用倒推 |
 | 关卡索引 | `src/levels/levelIndex.ts` | 15×5=75、key、线性下标 0…74 |
 | 界面 i18n | `src/app/i18n.ts` | 中英文文案与 `document.documentElement.lang` |
 | 离线生成 | `scripts/generate-levels.ts` | `buildPack`、`collectLevelsForWorld`；**勿在 Vitest 里直接 import 后无 guard 执行 main** |
@@ -50,11 +50,10 @@
 
 ## 5. 关卡生成逻辑（重要）
 
-- **思路**：从 **1 球终局**出发，反复做 **反向一步**（`tryReverseAddBall`）得到多球初局；正向解法为反向记录的逆序。
-- **反向一步的两种来源**：  
-  1. **快速路径**：在目标局面的**每个空格**上尝试多放一球，再枚举发球（很多前驱是「终局 + 一球」）。  
-  2. **随机路径**：随机 `(k+1)` 个不同格摆球，再枚举发球（覆盖链式才出现的前驱）。
-- **性能**：曾极慢的主因是纯随机 `(k+1)`-子集命中率随 `k` 暴跌；快速路径 + 稀疏抽样（`randomDistinctPositions`）已缓解。全量 **75 关**生成通常较快；若扩展关数可再考虑按 world 并行或缓存。
+- **主路径（与 `npm run levels:generate` 一致）**：在固定 **7×8** 盘上 **随机放置 N 球** → 可选静态预筛（孤立球、行/列连通）→ **`solveDFS`** 在 HOG2 规则下求 **N−1** 步解；无解则换种子重试。打包脚本 `collectLevelsForWorld` 再做相似度去重、共线配额、按步数排序等。
+- **为何不用倒推作主路径**：与运行时同一套 `move` 判定、参数与去重好调；高球数时「反向一步」随机前驱命中率差等问题见 **[`LEVEL_GENERATION.md`](LEVEL_GENERATION.md)** §2.6。
+- **`tryReverseAddBall`**：仍可用于单测或实验；**离线打包不依赖**从 1 球终局链式倒推。
+- **性能提示**：全量 **75 关**一般可较快完成；扩展关数时可考虑按 world 并行或 profiling。
 
 ---
 
@@ -100,6 +99,7 @@ npm run verify           # test + coverage + build + levels:validate（见 packa
 | 文件 | 用途 |
 |------|------|
 | [`PROJECT_RULES.md`](PROJECT_RULES.md) | 单一事实来源（规则 + 产品 + 工程约定） |
+| [`LEVEL_GENERATION.md`](LEVEL_GENERATION.md) | 离线生成：算法、流程、命令、为何主路径不用倒推 |
 | [`LEVEL_SPEC.md`](LEVEL_SPEC.md) | JSON、75 关拓扑、7×8 棋盘 |
 | [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) | 分阶段计划（A 完成；B 生成/校验；C 前端…） |
 | [`TEST_TRACEABILITY.md`](TEST_TRACEABILITY.md) | 需求 ↔ 测试表 |
@@ -123,7 +123,7 @@ npm run verify           # test + coverage + build + levels:validate（见 packa
 | 日期 | 说明 |
 |------|------|
 | 2026-04-06 | 初稿：规则、生成逻辑、坑点、命令、下一阶段 |
-| 2026-04-07 | 补充：`computeMovePlan` / `runMoveAnimation`、分层球与样式要点、README「移动动画」 |
+| 2026-04-07 | 补充：`computeMovePlan` / `runMoveAnimation`、分层球与样式要点、README「移动动画」；§5 改为正向随机 + DFS 与 `LEVEL_GENERATION.md` 一致；文档索引增 `LEVEL_GENERATION.md`；仓库根路径表述 |
 | 2026-04-08 | `swapToPlush` 色差；指针：`touch-action`、选球/滑动合并、`pointerId`、监听器清理 |
 | 2026-04-09 | 关卡规模 75、棋盘 7×8、校验默认条数；i18n；与 `LEVEL_SPEC` / `PROJECT_RULES` 对齐 |
 | 2026-04-10 | 文档索引补充 `README.en.md`；与根 README 文档节交叉引用 |

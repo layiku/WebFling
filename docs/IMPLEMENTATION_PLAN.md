@@ -27,8 +27,8 @@ npm run levels:generate
 
 | 任务 | 说明 | 测试 |
 |------|------|------|
-| B1 反向生成 | 从 1 球起反向加球，保证可解；记录 `solution` 与 `stepCount` | `src/game/generator.test.ts`（属性/小棋盘用例） |
-| B2 按难度填槽 | 对每个 (N, stage 1…5) 选 S 非降；失败时放宽或重试 | `generator` 集成测试 + 黄金样例 JSON |
+| B1 正向生成 + DFS | 随机 N 球初局（可选预筛）+ 有界 `solveDFS` 得解；`normalizeBoard` 后写入 `solution` / `stepCount`；`tryReverseAddBall` 仅辅助测试 | `src/game/reverseGen.test.ts`、`scripts/generate-levels.test.ts` |
+| B2 按难度填槽 | `collectLevelsForWorld`：去重、共线配额、`skipPreFilters` 等；同 world 内按解长度 **S 升序** 取 5 关 | 与 B1 测试 + `public/levels.json` 黄金样例（`levels:validate`） |
 | B3 写入 `LevelPack` | 75 条记录（与 `TOTAL_LEVEL_SLOTS` 一致）、`rulesVersion`、校验无重复 id | `scripts/validate-level-pack.test.ts`（读入 JSON 断言） |
 
 ---

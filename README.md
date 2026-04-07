@@ -136,6 +136,7 @@ flowchart TB
 
 - **`docs/CONTEXT_HANDOFF.md`** — **给下一阶段的上下文摘要（规则、生成、坑点、命令）**  
 - **`docs/PROJECT_RULES.md`** — **项目规则（玩法、关卡、工程约定；跨会话以该文档为准）**  
+- **`docs/LEVEL_GENERATION.md`** — **离线关卡生成：算法、整包流程、命令与环境变量**  
 - `docs/LEVEL_SPEC.md` — 关卡 JSON、75 关拓扑与棋盘约定  
 - `docs/IMPLEMENTATION_PLAN.md` — 分阶段实现与配套测试计划  
 - `docs/TEST_TRACEABILITY.md` — 需求与测试对应表  
