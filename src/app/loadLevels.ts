@@ -111,16 +111,17 @@ function parseLevelRecord(raw: unknown, index: number): LevelRecord {
     throw new Error(`${prefix}: invalid piecePositions (${msg})`)
   }
 
-  let solution: LevelRecord['solution'] = undefined
-  if (o.solution !== undefined) {
-    if (!Array.isArray(o.solution)) {
-      throw new Error(`${prefix}: solution must be an array`)
-    }
-    const boardSize = (o.width as number) * (o.height as number)
-    solution = o.solution.map((step, j) =>
-      parseMoveStep(step, `${prefix}.solution[${j}]`, boardSize),
-    )
+  let solution: LevelRecord['solution'] | undefined = undefined
+  if (o.solution === undefined) {
+    throw new Error(`${prefix}: solution is required`)
   }
+  if (!Array.isArray(o.solution)) {
+    throw new Error(`${prefix}: solution must be an array`)
+  }
+  const boardSize = (o.width as number) * (o.height as number)
+  solution = o.solution.map((step, j) =>
+    parseMoveStep(step, `${prefix}.solution[${j}]`, boardSize),
+  )
 
   const actualStepCount = solution?.length ?? 0
   if (o.stepCount !== actualStepCount) {
@@ -152,10 +153,21 @@ function parseLevelRecord(raw: unknown, index: number): LevelRecord {
  * 运行时加载预生成的关卡包（默认 `public/levels.json` → `/levels.json`）。
  */
 export async function loadLevelPack(url = '/levels.json'): Promise<LevelPack> {
-  const res = await fetch(url)
-  if (!res.ok) {
-    throw new Error(`loadLevelPack: HTTP ${res.status} ${res.statusText}`)
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15_000)
+  try {
+    const res = await fetch(url, { signal: controller.signal })
+    if (!res.ok) {
+      throw new Error(`loadLevelPack: HTTP ${res.status} ${res.statusText}`)
+    }
+    const data = (await res.json()) as unknown
+    return parseLevelPackData(data)
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      throw new Error(`loadLevelPack: request timed out (${url})`)
+    }
+    throw e
+  } finally {
+    clearTimeout(timeoutId)
   }
-  const data = (await res.json()) as unknown
-  return parseLevelPackData(data)
 }

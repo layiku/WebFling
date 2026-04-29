@@ -170,3 +170,182 @@ describe('win / error counts', () => {
     expect(isErrorZeroBalls(b)).toBe(true)
   })
 })
+
+// ─── Zero-direction guard ─────────────────────────────────────
+
+describe('zero direction vector (dx=0, dy=0)', () => {
+  it('canMove returns false', () => {
+    const b = createBoard(3, 3, [0, 4])
+    expect(canMove(b, 0, 0, 0)).toBe(false)
+  })
+
+  it('move throws', () => {
+    const b = createBoard(3, 3, [0, 4])
+    expect(() => move(b, 0, 0, 0)).toThrow(/zero direction/)
+  })
+})
+
+// ─── Vertical movement ────────────────────────────────────────
+
+describe('canMove vertical', () => {
+  it('returns true when there is an empty row before the first piece (down)', () => {
+    const b = createBoard(1, 5, [0, 2])
+    expect(canMove(b, 0, 0, 1)).toBe(true)
+  })
+
+  it('returns false when the first cell below is occupied (adjacent)', () => {
+    const b = createBoard(1, 3, [0, 1])
+    expect(canMove(b, 0, 0, 1)).toBe(false)
+  })
+
+  it('returns true upward', () => {
+    // ball at row 4, ball at row 2, on a 1×5 board
+    const b = createBoard(1, 5, [4, 2])
+    expect(canMove(b, 4, 0, -1)).toBe(true)
+  })
+
+  it('returns false upward when adjacent', () => {
+    const b = createBoard(1, 3, [2, 1])
+    expect(canMove(b, 2, 0, -1)).toBe(false)
+  })
+
+  it('returns false when no piece in direction', () => {
+    const b = createBoard(1, 5, [0])
+    expect(canMove(b, 0, 0, 1)).toBe(false)
+  })
+})
+
+describe('move vertical (chain + exit)', () => {
+  it('down: striker stops before impact, struck exits', () => {
+    const b = createBoard(1, 5, [0, 2])
+    move(b, 0, 0, 1)
+    expect(countBalls(b)).toBe(1)
+    expect(b.cells[1]).toBe(0)
+    expect(isWon(b)).toBe(true)
+  })
+
+  it('up: striker stops before impact, struck exits', () => {
+    const b = createBoard(1, 5, [4, 2])
+    move(b, 4, 0, -1)
+    expect(countBalls(b)).toBe(1)
+    expect(b.cells[3]).toBe(0)
+    expect(isWon(b)).toBe(true)
+  })
+
+  it('down: 3-ball chain where struck piece hits another and both chain out', () => {
+    // cells 0, 2, 4 on a 1×7 board → ball 0 hits ball 1 at cell 2, ball 1 hits ball 2 at cell 4
+    const b = createBoard(1, 7, [0, 2, 4])
+    move(b, 0, 0, 1)
+    // ball 2 exits, ball 1 stops at cell 3, ball 0 stops at cell 1
+    expect(countBalls(b)).toBe(2)
+    expect(b.cells[1]).toBe(0)
+    expect(b.cells[3]).toBe(1)
+  })
+})
+
+// ─── Leftward movement ────────────────────────────────────────
+
+describe('canMove leftward', () => {
+  it('returns true when there is a gap then a piece to the left', () => {
+    const b = createBoard(5, 1, [4, 2])
+    expect(canMove(b, 4, -1, 0)).toBe(true)
+  })
+
+  it('returns false when adjacent piece to the left', () => {
+    const b = createBoard(3, 1, [2, 1])
+    expect(canMove(b, 2, -1, 0)).toBe(false)
+  })
+})
+
+describe('move leftward', () => {
+  it('striker stops before impact, struck exits left', () => {
+    const b = createBoard(5, 1, [4, 2])
+    move(b, 4, -1, 0)
+    expect(countBalls(b)).toBe(1)
+    expect(b.cells[3]).toBe(0)
+    expect(isWon(b)).toBe(true)
+  })
+})
+
+// ─── computeMovePlan vs move consistency ───────────────────────
+
+describe('computeMovePlan vs move board state consistency', () => {
+  it('rightward 2-ball', () => {
+    const orig = createBoard(5, 1, [0, 2])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 0, 1, 0)
+    const plan = computeMovePlan(cloneBoard(orig), 0, 1, 0)
+    expect(plan).not.toBeNull()
+    // Simulate: apply move on another clone and compare
+    const sim = cloneBoard(orig)
+    move(sim, 0, 1, 0)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+
+  it('downward 2-ball', () => {
+    const orig = createBoard(1, 5, [0, 2])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 0, 0, 1)
+    const plan = computeMovePlan(cloneBoard(orig), 0, 0, 1)
+    expect(plan).not.toBeNull()
+    const sim = cloneBoard(orig)
+    move(sim, 0, 0, 1)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+
+  it('leftward 2-ball', () => {
+    const orig = createBoard(5, 1, [4, 2])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 4, -1, 0)
+    const plan = computeMovePlan(cloneBoard(orig), 4, -1, 0)
+    expect(plan).not.toBeNull()
+    const sim = cloneBoard(orig)
+    move(sim, 4, -1, 0)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+
+  it('upward 2-ball', () => {
+    const orig = createBoard(1, 5, [4, 2])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 4, 0, -1)
+    const plan = computeMovePlan(cloneBoard(orig), 4, 0, -1)
+    expect(plan).not.toBeNull()
+    const sim = cloneBoard(orig)
+    move(sim, 4, 0, -1)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+
+  it('3-ball horizontal chain', () => {
+    const orig = createBoard(7, 1, [0, 2, 4])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 0, 1, 0)
+    const plan = computeMovePlan(cloneBoard(orig), 0, 1, 0)
+    expect(plan).not.toBeNull()
+    const sim = cloneBoard(orig)
+    move(sim, 0, 1, 0)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+
+  it('3-ball vertical chain', () => {
+    const orig = createBoard(1, 7, [0, 2, 4])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 0, 0, 1)
+    const plan = computeMovePlan(cloneBoard(orig), 0, 0, 1)
+    expect(plan).not.toBeNull()
+    const sim = cloneBoard(orig)
+    move(sim, 0, 0, 1)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+
+  it('2D layout: move right on a 3×3 board', () => {
+    // ball at (0,0), ball at (2,0) on 3×3
+    const orig = createBoard(3, 3, [0, 2])
+    const afterMove = cloneBoard(orig)
+    move(afterMove, 0, 1, 0)
+    const plan = computeMovePlan(cloneBoard(orig), 0, 1, 0)
+    expect(plan).not.toBeNull()
+    const sim = cloneBoard(orig)
+    move(sim, 0, 1, 0)
+    expect(sim.cells).toEqual(afterMove.cells)
+  })
+})

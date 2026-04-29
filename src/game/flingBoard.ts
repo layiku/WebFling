@@ -74,6 +74,7 @@ export function canMove(
   dx: number,
   dy: number,
 ): boolean {
+  if (dx === 0 && dy === 0) return false
   if (startCell < 0 || startCell >= board.cells.length) return false
   // 起点必须有棋子，否则没有球可以移动
   if (board.cells[startCell]! < 0) return false
@@ -105,6 +106,9 @@ export function move(
   dx: number,
   dy: number,
 ): void {
+  if (dx === 0 && dy === 0) {
+    throw new Error('zero direction vector')
+  }
   if (startCell < 0 || startCell >= board.cells.length) {
     throw new RangeError(`startCell ${startCell} out of bounds`)
   }
@@ -140,7 +144,8 @@ export function move(
 
 // ─── Move animation plan (mirrors {@link move} step semantics) ───────
 
-/** 供 UI 播放滚动 / 撞击 / 飞出 动画，逻辑与 `move` 一致 */
+/** 供 UI 播放滚动 / 撞击 / 飞出 动画，逻辑与 `move` 一致。
+ *  与 move() 共享遍历逻辑；修改任一函数时必须同步另一函数。*/
 export type MoveAnimSegment =
   | { kind: 'roll'; pieceId: number; path: number[] }
   | {

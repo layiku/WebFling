@@ -13,8 +13,8 @@ export type LevelRecord = {
   height: number
   /** Initial occupancy: linear indices of each piece id 0..N-1 in row-major order */
   piecePositions: readonly number[]
-  /** Optional move list for hints / validation */
-  solution?: readonly { startCell: number; dx: number; dy: number }[]
+  /** Move list for hints / validation */
+  solution: readonly { startCell: number; dx: number; dy: number }[]
 }
 
 export type LevelPack = {

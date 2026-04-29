@@ -35,8 +35,21 @@ function actualCellSize(boardEl: HTMLElement, cellIndex: number): number {
 /** 撞击后停在格上的幽灵球，动画结束在 finally 里统一移除 */
 const PARKED_STRIKER_CLASS = 'ball-parked-after-impact'
 
-/** 与 .cell-ball 保持一致的格子背景色 */
-const CELL_BALL_BG = '#ececf0'
+/** 从 boardEl 读取 CSS 自定义属性 --cell-ball-bg */
+function readBallBg(boardEl: HTMLElement): string {
+  return (
+    getComputedStyle(boardEl).getPropertyValue('--cell-ball-bg').trim() ||
+    '#ececf0'
+  )
+}
+
+/** 从 boardEl 读取 CSS 自定义属性 --cell-empty-bg */
+function readEmptyBg(boardEl: HTMLElement): string {
+  return (
+    getComputedStyle(boardEl).getPropertyValue('--cell-empty-bg').trim() ||
+    '#fafafa'
+  )
+}
 
 /**
  * 创建「分层格子幽灵」：
@@ -51,6 +64,7 @@ function makeGhost(
   topLeftX: number,
   topLeftY: number,
   cellSizePx: number,
+  ballBg: string,
 ): HTMLDivElement {
   const colorIdx = pieceId % 5
 
@@ -63,7 +77,7 @@ function makeGhost(
   wrapper.style.width = `${cellSizePx}px`
   wrapper.style.height = `${cellSizePx}px`
   wrapper.style.borderRadius = '8px'
-  wrapper.style.background = CELL_BALL_BG
+  wrapper.style.background = ballBg
   wrapper.style.display = 'flex'
   wrapper.style.alignItems = 'center'
   wrapper.style.justifyContent = 'center'
@@ -109,27 +123,24 @@ function showParkedStriker(
 ): void {
   const cs = actualCellSize(boardEl, strikerStopCell)
   const tl = cellTopLeft(boardEl, strikerStopCell)
-  const g = makeGhost(boardEl, strikerId, tl.x, tl.y, cs)
+  const g = makeGhost(boardEl, strikerId, tl.x, tl.y, cs, readBallBg(boardEl))
   swapToPlush(g, strikerId)
   g.classList.add(PARKED_STRIKER_CLASS)
 }
-
-/** 与 .cell-empty 保持一致的空格背景色 */
-const CELL_EMPTY_BG = '#fafafa'
 
 /**
  * 隐藏源格的球图像（opacity=0）并将背景换为空格色，
  * 使源格立刻呈现"已离开"的空格外观，幽灵格负责视觉上的移动过程。
  * 同时移除选中框，避免动画期间空格子显示蓝色轮廓。
  */
-function hideSourceCell(cellIndex: number, boardEl: HTMLElement): void {
+function hideSourceCell(cellIndex: number, boardEl: HTMLElement, emptyBg: string): void {
   const btn = boardEl.querySelector(
     `button.cell[data-index="${cellIndex}"]`,
   ) as HTMLElement | null
   if (!btn) return
   const plush = btn.querySelector('.ball-plush') as HTMLElement | null
   plush?.classList.add('ball-plush--anim-hide')
-  btn.style.background = CELL_EMPTY_BG
+  btn.style.background = emptyBg
   btn.classList.remove('cell-selected')
 }
 
@@ -143,12 +154,12 @@ async function animateRollSegment(
 
   const from = path[0]!
   const to = path[path.length - 1]!
-  hideSourceCell(from, boardEl)
+  hideSourceCell(from, boardEl, readEmptyBg(boardEl))
 
   const cs = actualCellSize(boardEl, from)
   const tl0 = cellTopLeft(boardEl, from)
   const tl1 = cellTopLeft(boardEl, to)
-  const ghost = makeGhost(boardEl, seg.pieceId, tl0.x, tl0.y, cs)
+  const ghost = makeGhost(boardEl, seg.pieceId, tl0.x, tl0.y, cs, readBallBg(boardEl))
   const surface = ghost.querySelector('.ball-surface') as HTMLElement
 
   const dx = tl1.x - tl0.x
@@ -190,7 +201,7 @@ async function animateImpactSegment(
   ghost?.remove()
   showParkedStriker(boardEl, seg.strikerStopCell, seg.strikerId)
   /** 撞击瞬间隐藏被撞击球的真实格，后续 roll/flyOff 幽灵接管视觉 */
-  hideSourceCell(seg.hitCell, boardEl)
+  hideSourceCell(seg.hitCell, boardEl, readEmptyBg(boardEl))
 }
 
 /** 沿出口方向滚出棋盘的像素距离 */
@@ -200,10 +211,10 @@ async function animateFlyOffSegment(
   seg: Extract<MoveAnimSegment, { kind: 'flyOff' }>,
   boardEl: HTMLElement,
 ): Promise<void> {
-  hideSourceCell(seg.fromCell, boardEl)
+  hideSourceCell(seg.fromCell, boardEl, readEmptyBg(boardEl))
   const cs = actualCellSize(boardEl, seg.fromCell)
   const tl0 = cellTopLeft(boardEl, seg.fromCell)
-  const ghost = makeGhost(boardEl, seg.pieceId, tl0.x, tl0.y, cs)
+  const ghost = makeGhost(boardEl, seg.pieceId, tl0.x, tl0.y, cs, readBallBg(boardEl))
   const surface = ghost.querySelector('.ball-surface') as HTMLElement
 
   const tl1x = tl0.x + seg.dx * FLYOFF_ROLL_PX
@@ -252,6 +263,15 @@ export async function runMoveAnimation(
   moveDx: number,
   moveDy: number,
 ): Promise<void> {
+  const prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)',
+  ).matches
+  if (prefersReducedMotion) {
+    boardEl.classList.add('board--animating')
+    boardEl.classList.remove('board--animating')
+    return
+  }
+
   boardEl.classList.add('board--animating')
   let ghost: HTMLDivElement | null = null
   try {

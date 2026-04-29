@@ -24,4 +24,10 @@ describe('pixelDeltaToDirection', () => {
     expect(pixelDeltaToDirection(30, -30, 20)).toEqual({ dx: 1, dy: 0 })
     expect(pixelDeltaToDirection(-30, -30, 20)).toEqual({ dx: -1, dy: 0 })
   })
+
+  it('returns null for NaN inputs', () => {
+    expect(pixelDeltaToDirection(NaN, 0, 20)).toBeNull()
+    expect(pixelDeltaToDirection(0, NaN, 20)).toBeNull()
+    expect(pixelDeltaToDirection(NaN, NaN, 20)).toBeNull()
+  })
 })

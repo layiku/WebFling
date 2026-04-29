@@ -2,6 +2,7 @@ import {
   canMove,
   cloneBoard,
   countBalls,
+  countOccupiedCells,
   createBoard,
   EMPTY,
   isWon,
@@ -69,13 +70,6 @@ function fastKey(board: FlingBoard): string {
   return key
 }
 
-function countOccupied(board: FlingBoard): number {
-  let c = 0
-  for (let i = 0; i < board.cells.length; i++) {
-    if (board.cells[i] >= 0) c++
-  }
-  return c
-}
 
 /** Renumber pieces to 0..n−1 by increasing cell index (stable for JSON export). */
 export function normalizeBoard(board: FlingBoard): FlingBoard {
@@ -264,7 +258,7 @@ function isConnected(w: number, positions: readonly number[]): boolean {
  *   - Exploration beyond the state-visit budget (returns null = "unknown").
  */
 function solveDFS(board: FlingBoard, maxStates: number): MoveStep[] | null {
-  const totalBalls = countOccupied(board)
+  const totalBalls = countOccupiedCells(board)
   if (totalBalls <= 1) return []
 
   const w = board.width
@@ -392,7 +386,7 @@ export function tryReverseAddBall(
         if (!canMove(B, c, dx, dy)) continue
         const C = cloneBoard(B)
         move(C, c, dx, dy)
-        if (countOccupied(C) !== targetCount) continue
+        if (countOccupiedCells(C) !== targetCount) continue
         occScratch.length = 0
         for (let i = 0; i < C.cells.length; i++) {
           if (C.cells[i] >= 0) occScratch.push(i)

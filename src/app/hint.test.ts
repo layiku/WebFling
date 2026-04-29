@@ -5,7 +5,6 @@ import type { LevelRecord } from '../levels/schema.js'
 import {
   boardsEqual,
   findSolutionPrefixDepth,
-  getNextPackagedStep,
 } from './hint.js'
 
 describe('hint / packaged solution', () => {
@@ -65,15 +64,6 @@ describe('hint / packaged solution', () => {
       if (found) break
     }
     expect(found).toBe(true)
-  })
-
-  it('getNextPackagedStep returns first move from initial', () => {
-    const b = createBoard(7, 7, level.piecePositions)
-    expect(getNextPackagedStep(level, b)).toEqual({
-      startCell: 37,
-      dx: 0,
-      dy: -1,
-    })
   })
 
   it('boardsEqual detects identical boards', () => {

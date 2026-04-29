@@ -52,7 +52,7 @@ describe('validateLevelPack', () => {
   })
 
   it('rejects missing solution', () => {
-    const pack: LevelPack = {
+    const pack = {
       rulesVersion: 1,
       generatedAt: '',
       levels: [
@@ -65,7 +65,7 @@ describe('validateLevelPack', () => {
           piecePositions: [0, 4],
         },
       ],
-    }
+    } as unknown as LevelPack
     const r = validateLevelPack(pack, 1)
     expect(r.ok).toBe(false)
     if (r.ok) return

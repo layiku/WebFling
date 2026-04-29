@@ -65,6 +65,7 @@ describe('GameSession packaged hint', () => {
       width: 3,
       height: 3,
       piecePositions: [0, 4],
+      solution: [],
     }
     const g = new GameSession(noSolLevel)
     const r = g.tryApplyPackagedHint()
@@ -91,6 +92,7 @@ describe('GameSession', () => {
       width: 7,
       height: 7,
       piecePositions: [8, 22],
+      solution: [{ startCell: 8, dx: 0, dy: 1 }],
     }
     const g = new GameSession(level)
     g.selectCell(8)
@@ -108,6 +110,7 @@ describe('GameSession', () => {
       width: 7,
       height: 7,
       piecePositions: [2, 37, 44],
+      solution: [],
     }
     const g = new GameSession(level)
     g.selectCell(37)
@@ -127,6 +130,7 @@ describe('GameSession', () => {
       width: 3,
       height: 3,
       piecePositions: [0, 1],
+      solution: [],
     }
     const g = new GameSession(level)
     g.selectCell(0)
@@ -144,6 +148,7 @@ describe('GameSession', () => {
       width: 4,
       height: 4,
       piecePositions: [0, 6],
+      solution: [],
     }
     const g = new GameSession(level)
     g.selectCell(0)

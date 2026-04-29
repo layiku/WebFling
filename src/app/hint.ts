@@ -1,5 +1,5 @@
 import { createBoard, type FlingBoard } from '../game/flingBoard.js'
-import { IllegalMoveError, applyMoves, type MoveStep } from '../game/reverseGen.js'
+import { IllegalMoveError, applyMoves } from '../game/reverseGen.js'
 import type { LevelRecord } from '../levels/schema.js'
 
 export function boardsEqual(a: FlingBoard, b: FlingBoard): boolean {
@@ -11,10 +11,6 @@ export function boardsEqual(a: FlingBoard, b: FlingBoard): boolean {
   return true
 }
 
-/**
- * 找到 k，使得从初始局面连续执行 `solution[0..k-1]` 后面与 `current` 完全一致（含棋子编号）。
- * 若玩家走偏则返回 null。
- */
 /**
  * 找到 k，使得从初始局面连续执行 `solution[0..k-1]` 后面与 `current` 完全一致（含棋子编号）。
  * 若玩家走偏，或关卡包含非法步骤（数据损坏），则返回 null。
@@ -38,18 +34,6 @@ export function findSolutionPrefixDepth(
     return null
   }
   return null
-}
-
-/** 在仍与参考解一致时，返回下一步；已走完或偏离则返回 null。 */
-export function getNextPackagedStep(
-  level: LevelRecord,
-  current: FlingBoard,
-): MoveStep | null {
-  const d = findSolutionPrefixDepth(level, current)
-  if (d === null) return null
-  const sol = level.solution!
-  if (d >= sol.length) return null
-  return sol[d]!
 }
 
 export type HintFailureReason =

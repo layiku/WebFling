@@ -1,4 +1,6 @@
 :root {
+  --cell-ball-bg: #ececf0;
+  --cell-empty-bg: #fafafa;
   font-family:
     system-ui,
     -apple-system,
@@ -342,7 +344,7 @@ code {
 }
 
 .cell-empty {
-  background: #fafafa;
+  background: var(--cell-empty-bg);
 }
 
 /* 有球格：中央为圆形毛绒球（与原版 Fling 相近的多色球） */
@@ -350,7 +352,7 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ececf0;
+  background: var(--cell-ball-bg);
 }
 
 /**
@@ -453,7 +455,7 @@ code {
 }
 
 .cell:focus-visible {
-  outline: 2px solid #007aff;
+  outline: 2px dashed rgba(0, 122, 255, 0.6);
   outline-offset: -1px;
 }
 
@@ -461,4 +463,14 @@ code {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ball-plush,
+  .ball-shell,
+  .ball-surface,
+  .ball-gloss {
+    transition: none !important;
+    animation: none !important;
+  }
 }

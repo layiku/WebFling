@@ -97,6 +97,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   const langBtn = document.createElement('button')
   langBtn.type = 'button'
   langBtn.className = 'btn btn-lang'
+  langBtn.dataset.testid = 'lang-toggle'
 
   const nav = document.createElement('div')
   nav.className = 'game-nav'
@@ -104,11 +105,13 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   const prevBtn = document.createElement('button')
   prevBtn.type = 'button'
   prevBtn.className = 'btn'
-  prevBtn.textContent = '上一关'
+  prevBtn.dataset.testid = 'prev-level'
+  prevBtn.textContent = ''
   const nextBtn = document.createElement('button')
   nextBtn.type = 'button'
   nextBtn.className = 'btn'
-  nextBtn.textContent = '下一关'
+  nextBtn.dataset.testid = 'next-level'
+  nextBtn.textContent = ''
 
   const levelLabel = document.createElement('div')
   levelLabel.className = 'level-label'
@@ -118,15 +121,18 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   const undoBtn = document.createElement('button')
   undoBtn.type = 'button'
   undoBtn.className = 'btn'
-  undoBtn.textContent = '撤销'
+  undoBtn.dataset.testid = 'undo'
+  undoBtn.textContent = ''
   const restartBtn = document.createElement('button')
   restartBtn.type = 'button'
   restartBtn.className = 'btn'
-  restartBtn.textContent = '重开'
+  restartBtn.dataset.testid = 'restart'
+  restartBtn.textContent = ''
   const hintBtn = document.createElement('button')
   hintBtn.type = 'button'
   hintBtn.className = 'btn btn-secondary'
-  hintBtn.textContent = '提示一步'
+  hintBtn.dataset.testid = 'hint'
+  hintBtn.textContent = ''
 
   const statusEl = document.createElement('p')
   statusEl.className = 'game-status'
@@ -297,14 +303,17 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
 
     if (ph === 'won') {
       statusEl.textContent = m.statusWon
+      statusEl.setAttribute('role', 'status')
       statusEl.classList.remove('status-bad')
       statusEl.classList.add('status-good')
     } else if (ph === 'lost') {
       statusEl.textContent = m.statusLost
+      statusEl.setAttribute('role', 'alert')
       statusEl.classList.remove('status-good')
       statusEl.classList.add('status-bad')
     } else {
       statusEl.textContent = m.remainingBalls(countOccupiedCells(session.getBoard()))
+      statusEl.setAttribute('role', 'status')
       statusEl.classList.remove('status-good', 'status-bad')
     }
     renderBoard()
@@ -351,6 +360,8 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
       cell.type = 'button'
       cell.className = 'cell'
       cell.dataset.index = String(i)
+      cell.setAttribute('role', 'gridcell')
+      cell.tabIndex = sel === i ? 0 : -1
       cell.setAttribute(
         'aria-label',
         buildCellAriaLabel(col, row, id, i, sel, locale),

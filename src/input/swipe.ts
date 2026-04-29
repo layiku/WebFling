@@ -7,7 +7,7 @@ export function pixelDeltaToDirection(
   minDistancePx: number,
 ): { dx: number; dy: number } | null {
   const len = Math.hypot(dx, dy)
-  if (len < minDistancePx || len === 0) return null
+  if (!Number.isFinite(len) || len < minDistancePx || len === 0) return null
   if (Math.abs(dx) >= Math.abs(dy)) {
     return dx > 0 ? { dx: 1, dy: 0 } : { dx: -1, dy: 0 }
   }

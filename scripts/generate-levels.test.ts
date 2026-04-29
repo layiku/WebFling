@@ -133,8 +133,8 @@ describe('isTooSimilar', () => {
   it('rejects a level with the same canonical form', () => {
     const rng = mulberry32(0x1234)
     const g = generateLevel(W, H, 5, rng, { roundTries: 200, maxSolverStates: 50_000 })
-    if (!g) return  // skip if seed produces no result
-    expect(isTooSimilar(g, [g])).toBe(true)
+    expect(g).not.toBeNull()
+    expect(isTooSimilar(g!, [g!])).toBe(true)
   })
 
   it('accepts a genuinely distinct level', () => {
@@ -142,14 +142,15 @@ describe('isTooSimilar', () => {
     const rng2 = mulberry32(0xbbb2)
     const g1 = generateLevel(W, H, 8, rng1, { roundTries: 300, maxSolverStates: 100_000 })
     const g2 = generateLevel(W, H, 8, rng2, { roundTries: 300, maxSolverStates: 100_000 })
-    if (!g1 || !g2) return
-    const pos1 = boardToPiecePositions(g1.board)
-    const pos2 = boardToPiecePositions(g2.board)
+    expect(g1).not.toBeNull()
+    expect(g2).not.toBeNull()
+    const pos1 = boardToPiecePositions(g1!.board)
+    const pos2 = boardToPiecePositions(g2!.board)
     // Positions must differ; if they happen to be similar, Jaccard check will catch it
     if (pos1.join() !== pos2.join()) {
       // Most 8-ball pairs from different seeds will NOT be too similar
       // (not guaranteed, but very likely)
-      expect(typeof isTooSimilar(g2, [g1])).toBe('boolean')
+      expect(typeof isTooSimilar(g2!, [g1!])).toBe('boolean')
     }
   })
 })

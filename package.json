@@ -20,6 +20,9 @@
     "verify:e2e": "npm run build && playwright test",
     "verify:all": "npm run verify && playwright test"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/node": "^22.19.0",
     "@playwright/test": "^1.59.1",

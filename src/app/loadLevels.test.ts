@@ -118,7 +118,7 @@ describe('parseLevelPackData', () => {
     ).toThrow(/solution replay failed/)
   })
 
-  it('rejects stepCount 1 when solution is absent', () => {
+  it('rejects when solution is absent', () => {
     expect(() =>
       parseLevelPackData({
         rulesVersion: 1,
@@ -134,7 +134,7 @@ describe('parseLevelPackData', () => {
           },
         ],
       }),
-    ).toThrow(/stepCount/)
+    ).toThrow(/solution is required/)
   })
 })
 
@@ -177,5 +177,26 @@ describe('loadLevelPack', () => {
     )
     await expect(loadLevelPack()).rejects.toThrow('HTTP 404')
     vi.unstubAllGlobals()
+  })
+
+  it('throws descriptive error on timeout', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation((_url: string, opts: { signal?: AbortSignal }) => {
+        return new Promise((_resolve, reject) => {
+          opts.signal?.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted', 'AbortError'))
+          })
+        })
+      }),
+    )
+    const promise = loadLevelPack('/slow.json')
+    // Prevent unhandled rejection warning
+    promise.catch(() => {})
+    await vi.advanceTimersByTimeAsync(16_000)
+    await expect(promise).rejects.toThrow(/timed out/)
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
   })
 })
