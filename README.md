@@ -86,6 +86,8 @@ flowchart TB
 
 **指针与触摸（实现）**：棋盘格使用 **Pointer Events** 统一处理鼠标与触摸；`pointerup` 时若位移足够则发射，否则视为选球。`pointerdown` 对有球格调用 `preventDefault()`，配合 `src/style.css` 中 `.board .cell { touch-action: none }`，减少浏览器把滑动当成页面滚动而发出 `pointercancel`、或旧 `pointerup` 监听器泄漏导致的偶发无响应。新一次 `pointerdown` 会先清理上一组 `pointerup`/`pointercancel` 监听；多指时用 `pointerId` 匹配。
 
+**无障碍**：棋盘设 `role="grid"`，格子设 `role="gridcell"`；仅选中格有 `tabindex="0"`（其余 `-1`），键盘用户无需逐格 Tab。状态栏在胜利时用 `role="status"`，错误（0 球）时用 `role="alert"`。焦点环（虚线、半透明）与选中框（实线蓝色）使用不同视觉样式以示区分。
+
 ### 移动动画（实现要点）
 
 一步合法移动会先播放 **Web Animations API** 动画，再更新棋盘数据；动画期间棋盘为 `aria-busy`，不可重复操作。
@@ -93,9 +95,10 @@ flowchart TB
 | 要点 | 说明 |
 |------|------|
 | 预计算 | `computeMovePlan`（`src/game/flingBoard.ts`）在不改盘面的前提下，生成 `roll` / `impact` / `flyOff` 片段序列，与 `move()` 语义一致。 |
-| 播放 | `src/app/runMoveAnimation.ts`：幽灵格子（灰色背景随球平移）、**滚动中**用分层球体（`ball-surface` 按滚动方向旋转，`ball-gloss` 固定左上角高光）。 |
+| 播放 | `src/app/runMoveAnimation.ts`：幽灵格子（灰色背景随球平移）、**滚动中**用分层球体（`ball-surface` 按滚动方向旋转，`ball-gloss` 固定左上角高光）。幽灵格背景色从 CSS 自定义属性 `--cell-ball-bg` / `--cell-empty-bg` 读取，与静态格保持同步。 |
 | 静止对齐 | 滚动结束、撞击后停驻占位时，将内层替换为与棋盘完全相同的 **`.ball-plush`**（`swapToPlush`），避免「分层叠加渐变」与「单层渐变」在数学上不等价导致的**停球瞬间色差**。飞出动画仍用分层直至淡出。 |
 | 缓动 | 滑向目标为 `ease-out`；被撞飞出为 `ease-out`（避免起步停顿）；透明度在飞出后半段再淡出。 |
+| 减少动画 | 若用户系统开启了「减少动态效果」（`prefers-reduced-motion`），CSS 禁用过渡与动画，JS 跳过 WAAPI 播放，移动立即生效。 |
 | 样式 | `src/style.css`：外圈彩色光晕用 `box-shadow` + `--glow`，避免 `filter: blur` 首帧与静止球不一致的闪烁。 |
 
 ### 棋盘坐标

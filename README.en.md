@@ -84,6 +84,8 @@ This is a **static front-end only**—no separate backend. Steps:
 
 **Pointer / touch (implementation)**: the board uses **Pointer Events** for mouse and touch; on `pointerup`, enough movement shoots, otherwise it counts as selection. `preventDefault()` on `pointerdown` for ball cells, plus `.board .cell { touch-action: none }` in `src/style.css`, reduces scroll gestures turning into `pointercancel` or stale `pointerup` listeners. Each new `pointerdown` clears the previous window listeners; multi-touch uses `pointerId`.
 
+**Accessibility**: the board has `role="grid"`, cells have `role="gridcell"`; only the selected cell is in the Tab order (`tabindex="0"`, others `-1`). The status bar uses `role="status"` on win, `role="alert"` on error (0 balls). Focus ring (dashed, semi-transparent) and selection outline (solid blue) use distinct styles.
+
 **UI language**: use the **EN** / **中文** button at the top-right; preference is saved in `localStorage` (`fling-ui-locale`).
 
 ### Move animations (summary)
@@ -93,9 +95,10 @@ A legal move plays **Web Animations API** animation first, then updates board st
 | Topic | Notes |
 |-------|--------|
 | Precompute | `computeMovePlan` (`src/game/flingBoard.ts`) builds `roll` / `impact` / `flyOff` without mutating the board, consistent with `move()`. |
-| Playback | `src/app/runMoveAnimation.ts`: ghost cell (gray tile moves with the ball); **while rolling**, layered ball (`ball-surface` rotates, `ball-gloss` keeps highlight). |
+| Playback | `src/app/runMoveAnimation.ts`: ghost cell (gray tile moves with the ball); **while rolling**, layered ball (`ball-surface` rotates, `ball-gloss` keeps highlight). Ghost background colors are read from CSS custom properties `--cell-ball-bg` / `--cell-empty-bg` to stay in sync with static cells. |
 | Rest state | After roll or parked striker, inner DOM swaps to **`.ball-plush`** (`swapToPlush`) to match static cells and avoid color mismatch. |
 | Easing | Roll: `ease-out`; fly-off: `ease-out`; opacity fades in the last part of fly-off. |
+| Reduced motion | If the user's system has `prefers-reduced-motion` enabled, CSS disables transitions/animations and JS skips WAAPI playback — moves take effect instantly. |
 | Style | `src/style.css`: glow via `box-shadow` + `--glow` to avoid `filter: blur` flicker. |
 
 ### Board coordinates
