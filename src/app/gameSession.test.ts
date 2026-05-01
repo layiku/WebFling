@@ -195,7 +195,7 @@ describe('GameSession', () => {
   it('enters lost phase when board has zero balls', () => {
     // 3x3 board: single ball at cell 0 (top-left).
     // Abnormal: move upward (bypasses canMove) → exits immediately → 0 balls → lost.
-    // Note: this is only reachable via direct executeMovePhysics call;
+    // Note: this is only reachable via commitMove (which bypasses canMove);
     // normal flow checks canMove first which prevents this.
     const level: LevelRecord = {
       id: 't7',
@@ -207,8 +207,7 @@ describe('GameSession', () => {
       solution: [],
     }
     const g = new GameSession(level)
-    g.pushUndoSnapshot()
-    g.executeMovePhysics(0, 0, -1)
+    g.commitMove(0, 0, -1)
     expect(g.getPhase()).toBe('lost')
     expect(g.canUndo()).toBe(false)
     g.restart()

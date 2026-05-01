@@ -16,6 +16,7 @@ import {
   parseLevelKey,
 } from '../src/levels/levelIndex.js'
 import type { LevelPack, LevelRecord } from '../src/levels/schema.js'
+import { PRODUCTION_BOARD_W, PRODUCTION_BOARD_H } from '../src/levels/schema.js'
 import { replaySolution, verifySolution } from '../src/game/reverseGen.js'
 
 const __dir = dirname(fileURLToPath(import.meta.url))
@@ -92,6 +93,10 @@ export function validateLevelPack(
     }
 
     errors.push(...validatePositions(lev))
+
+    if (lev.width !== PRODUCTION_BOARD_W || lev.height !== PRODUCTION_BOARD_H) {
+      errors.push(`${lev.id}: dimensions must be ${PRODUCTION_BOARD_W}×${PRODUCTION_BOARD_H}`)
+    }
 
     if (lev.solution && lev.solution.length > 0) {
       try {

@@ -116,40 +116,15 @@ export function move(
   if (startCell < 0 || startCell >= board.cells.length) {
     throw new RangeError(`startCell ${startCell} out of bounds`)
   }
-  const w = board.width
-  const h = board.height
-  let movingId = board.cells[startCell]!
-  if (movingId < 0) {
+  if (board.cells[startCell]! < 0) {
     throw new Error('no piece at startCell')
   }
-
-  let lastx = startCell % w
-  let lasty = Math.floor(startCell / w)
-  let xx = lastx + dx
-  let yy = lasty + dy
-
-  while (xx >= 0 && xx < w && yy >= 0 && yy < h) {
-    const idx = yy * w + xx
-    if (board.cells[idx] >= 0) {
-      board.cells[lasty * w + lastx] = movingId
-      movingId = board.cells[idx]
-    } else {
-      board.cells[lasty * w + lastx] = EMPTY
-      board.cells[idx] = movingId
-    }
-    lastx = xx
-    lasty = yy
-    xx += dx
-    yy += dy
-  }
-
-  board.cells[lasty * w + lastx] = EMPTY
+  simulateChainWrite(board, startCell, dx, dy, null)
 }
 
 // ─── Move animation plan (mirrors {@link move} step semantics) ───────
 
-/** 供 UI 播放滚动 / 撞击 / 飞出 动画，逻辑与 `move` 一致。
- *  与 move() 共享遍历逻辑；修改任一函数时必须同步另一函数。*/
+/** 供 UI 播放滚动 / 撞击 / 飞出 动画，逻辑与 `move` 一致。 */
 export type MoveAnimSegment =
   | { kind: 'roll'; pieceId: number; path: number[] }
   | {
@@ -173,55 +148,78 @@ export function computeMovePlan(
 ): MoveAnimSegment[] | null {
   if (!canMove(board, startCell, dx, dy)) return null
   const b = cloneBoard(board)
-  const w = b.width
-  const h = b.height
   const segments: MoveAnimSegment[] = []
+  simulateChainWrite(b, startCell, dx, dy, segments)
+  return segments
+}
 
-  let movingId = b.cells[startCell]!
+// ─── Internal shared chain-collision traversal ──────────────────────
+
+/**
+ * Shared chain-collision traversal used by `move()` and `computeMovePlan()`.
+ * When `segments` is null, performs only cell mutations (hot path for DFS solver).
+ * When `segments` is provided, records animation segments alongside cell mutations.
+ */
+function simulateChainWrite(
+  board: FlingBoard,
+  startCell: number,
+  dx: number,
+  dy: number,
+  segments: MoveAnimSegment[] | null,
+): void {
+  const w = board.width
+  const h = board.height
+  let movingId = board.cells[startCell]!
   let lastx = startCell % w
   let lasty = Math.floor(startCell / w)
   let xx = lastx + dx
   let yy = lasty + dy
-  const path: number[] = [startCell]
+  const animating = segments !== null
+  const path: number[] = animating ? [startCell] : []
 
   while (xx >= 0 && xx < w && yy >= 0 && yy < h) {
     const idx = yy * w + xx
-    if (b.cells[idx]! >= 0) {
-      const lastIdx = lasty * w + lastx
-      segments.push({ kind: 'roll', pieceId: movingId, path: [...path] })
-      segments.push({
-        kind: 'impact',
-        strikerId: movingId,
-        strikerStopCell: lastIdx,
-        targetId: b.cells[idx]!,
-        hitCell: idx,
-      })
-      b.cells[lasty * w + lastx] = movingId
-      movingId = b.cells[idx]!
+    if (board.cells[idx] >= 0) {
+      if (animating) {
+        const lastIdx = lasty * w + lastx
+        segments!.push({ kind: 'roll', pieceId: movingId, path: [...path] })
+        segments!.push({
+          kind: 'impact',
+          strikerId: movingId,
+          strikerStopCell: lastIdx,
+          targetId: board.cells[idx]!,
+          hitCell: idx,
+        })
+      }
+      board.cells[lasty * w + lastx] = movingId
+      movingId = board.cells[idx]!
       lastx = xx
       lasty = yy
       xx += dx
       yy += dy
-      path.length = 0
-      path.push(lasty * w + lastx)
+      if (animating) {
+        path.length = 0
+        path.push(lasty * w + lastx)
+      }
     } else {
-      b.cells[lasty * w + lastx] = EMPTY
-      b.cells[idx] = movingId
+      board.cells[lasty * w + lastx] = EMPTY
+      board.cells[idx] = movingId
       lastx = xx
       lasty = yy
-      path.push(idx)
+      if (animating) {
+        path.push(idx)
+      }
       xx += dx
       yy += dy
     }
   }
 
-  // After the last impact, the exiting piece may travel through empty cells
-  // before leaving the board — produce a roll segment for that travel.
-  if (path.length >= 2) {
-    segments.push({ kind: 'roll', pieceId: movingId, path: [...path] })
+  if (animating) {
+    if (path.length >= 2) {
+      segments!.push({ kind: 'roll', pieceId: movingId, path: [...path] })
+    }
+    segments!.push({ kind: 'flyOff', pieceId: movingId, fromCell: lasty * w + lastx, dx, dy })
+  } else {
+    board.cells[lasty * w + lastx] = EMPTY
   }
-
-  const exitCell = lasty * w + lastx
-  segments.push({ kind: 'flyOff', pieceId: movingId, fromCell: exitCell, dx, dy })
-  return segments
 }

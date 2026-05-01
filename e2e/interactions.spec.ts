@@ -1,4 +1,8 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
+
+async function waitForBoardReady(page: Page): Promise<void> {
+  await page.locator('[role="grid"][aria-busy="true"]').waitFor({ state: 'hidden', timeout: 10_000 })
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -11,12 +15,14 @@ test('撤销：提示一步后撤销恢复到移动前', async ({ page }) => {
   await page.goto('/?level=5')
   await page.waitForSelector('.board .cell-ball', { timeout: 15_000 })
 
-  // 记录移动前的球数
-  const ballsBefore = await page.locator('.board .cell-ball').count()
+  // 记录移动前的球位置
+  const positionsBefore = await page.locator('.board .cell-ball').evaluateAll(
+    (els) => els.map(e => (e as HTMLElement).dataset.index),
+  )
 
   // 提示一步
   await page.getByTestId('hint').click()
-  await page.waitForTimeout(1500)
+  await waitForBoardReady(page)
 
   // 如果已经胜利，说明该关也只需一步，跳过撤销测试
   const statusText = await page.locator('.game-status').textContent()
@@ -26,14 +32,16 @@ test('撤销：提示一步后撤销恢复到移动前', async ({ page }) => {
 
   // 移动后球数应减少
   const ballsAfterMove = await page.locator('.board .cell-ball').count()
-  expect(ballsAfterMove).toBeLessThanOrEqual(ballsBefore)
+  expect(ballsAfterMove).toBeLessThanOrEqual(positionsBefore.length)
 
   // 撤销
   await page.getByTestId('undo').click()
 
-  // 恢复到移动前状态
-  const ballsAfterUndo = await page.locator('.board .cell-ball').count()
-  expect(ballsAfterUndo).toBe(ballsBefore)
+  // 恢复到移动前状态：球数和位置都应一致
+  const positionsAfterUndo = await page.locator('.board .cell-ball').evaluateAll(
+    (els) => els.map(e => (e as HTMLElement).dataset.index),
+  )
+  expect([...positionsAfterUndo].sort()).toEqual([...positionsBefore].sort())
 })
 
 test('重开：执行步骤后重开回到初始布局', async ({ page }) => {
@@ -93,7 +101,6 @@ test('键盘方向键：选中球后按方向键可移动', async ({ page }) => 
   await page.goto('/?level=1')
   await page.waitForSelector('.board .cell-ball', { timeout: 15_000 })
 
-  // 用 hint 完成整关（w2-s2 有多步），验证键盘操作不崩溃
   // 先选中第一个球
   const ballCell = page.locator('.board .cell-ball').first()
   await ballCell.click()
@@ -109,7 +116,7 @@ test('键盘方向键：选中球后按方向键可移动', async ({ page }) => 
       await page.locator('.board .cell-ball').first().click()
     }
     await page.keyboard.press(key)
-    await page.waitForTimeout(800)
+    await waitForBoardReady(page)
 
     const statusText = await page.locator('.game-status').textContent()
     if (statusText?.includes('胜利')) {

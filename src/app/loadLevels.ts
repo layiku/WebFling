@@ -1,6 +1,7 @@
 import { createBoard } from '../game/flingBoard.js'
 import { verifySolution } from '../game/reverseGen.js'
 import type { LevelPack, LevelRecord } from '../levels/schema.js'
+import { PRODUCTION_BOARD_W, PRODUCTION_BOARD_H } from '../levels/schema.js'
 
 function parseMoveStep(
   raw: unknown,
@@ -91,6 +92,9 @@ function parseLevelRecord(raw: unknown, index: number): LevelRecord {
   }
   if (typeof o.height !== 'number' || !Number.isInteger(o.height) || o.height < 1) {
     throw new Error(`${prefix}: invalid height`)
+  }
+  if (o.width !== PRODUCTION_BOARD_W || o.height !== PRODUCTION_BOARD_H) {
+    throw new Error(`${prefix}: dimensions must be ${PRODUCTION_BOARD_W}×${PRODUCTION_BOARD_H}`)
   }
   if (!Array.isArray(o.piecePositions)) {
     throw new Error(`${prefix}: piecePositions must be an array`)

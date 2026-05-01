@@ -75,17 +75,17 @@ export class GameSession {
   }
 
   /**
-   * 仅压入撤销栈（供动画结束后再 {@link executeMovePhysics}）。
+   * 仅压入撤销栈（供动画结束后再执行物理）。
    */
-  pushUndoSnapshot(): void {
+  private pushUndoSnapshot(): void {
     if (this.phase !== 'playing') return
     this.undoStack.push(new Int16Array(this.board.cells))
   }
 
   /**
-   * 执行物理一步（不压栈）；调用前须已 {@link pushUndoSnapshot}。
+   * 执行物理一步（不压栈）；调用前须已压栈。
    */
-  executeMovePhysics(startCell: number, dx: number, dy: number): void {
+  private executeMovePhysics(startCell: number, dx: number, dy: number): void {
     move(this.board, startCell, dx, dy)
     this.selectedCell = null
     if (isWon(this.board)) {
@@ -93,6 +93,15 @@ export class GameSession {
     } else if (isErrorZeroBalls(this.board)) {
       this.phase = 'lost'
     }
+  }
+
+  /**
+   * 原子提交：压入撤销快照 + 执行物理移动。
+   * 供动画结束后一次性调用，避免 push/execute 分两步导致错序。
+   */
+  commitMove(startCell: number, dx: number, dy: number): void {
+    this.pushUndoSnapshot()
+    this.executeMovePhysics(startCell, dx, dy)
   }
 
   /**

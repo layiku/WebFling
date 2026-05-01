@@ -29,8 +29,8 @@ describe('validateLevelPack', () => {
           id: 'w2-s1',
           ballCount: 2,
           stepCount: 0,
-          width: 3,
-          height: 3,
+          width: 7,
+          height: 8,
           piecePositions: [0, 1],
           solution: [],
         },
@@ -38,8 +38,8 @@ describe('validateLevelPack', () => {
           id: 'w2-s1',
           ballCount: 2,
           stepCount: 0,
-          width: 3,
-          height: 3,
+          width: 7,
+          height: 8,
           piecePositions: [0, 1],
           solution: [],
         },
@@ -60,9 +60,9 @@ describe('validateLevelPack', () => {
           id: 'w2-s1',
           ballCount: 2,
           stepCount: 0,
-          width: 3,
-          height: 3,
-          piecePositions: [0, 4],
+          width: 7,
+          height: 8,
+          piecePositions: [0, 8],
         },
       ],
     } as unknown as LevelPack
@@ -84,9 +84,31 @@ describe('validateLevelPack', () => {
     expect(r.errors.some((e) => e.includes('rulesVersion'))).toBe(true)
   })
 
+  it('rejects non-7×8 dimensions', () => {
+    const pack: LevelPack = {
+      rulesVersion: 1,
+      generatedAt: '',
+      levels: [
+        {
+          id: 'w2-s1',
+          ballCount: 2,
+          stepCount: 1,
+          width: 5,
+          height: 5,
+          piecePositions: [0, 4],
+          solution: [{ startCell: 0, dx: 0, dy: 1 }],
+        },
+      ],
+    }
+    const r = validateLevelPack(pack, 1)
+    expect(r.ok).toBe(false)
+    if (r.ok) return
+    expect(r.errors.some((e) => e.includes('dimensions'))).toBe(true)
+  })
+
   it('accepts a single generated level when count expectation is 1', () => {
     const rng = mulberry32(77_077)
-    const g = generateLevel(7, 7, 3, rng, {
+    const g = generateLevel(7, 8, 3, rng, {
       roundTries: 120,
     })
     expect(g).not.toBeNull()

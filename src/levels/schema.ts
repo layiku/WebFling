@@ -17,6 +17,10 @@ export type LevelRecord = {
   solution: readonly { startCell: number; dx: number; dy: number }[]
 }
 
+/** Production board dimensions — generator and validators must reference these. */
+export const PRODUCTION_BOARD_W = 7
+export const PRODUCTION_BOARD_H = 8
+
 export type LevelPack = {
   rulesVersion: number
   /** ISO date or semver of the pack */

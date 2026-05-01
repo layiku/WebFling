@@ -2,6 +2,7 @@ import {
   canMove,
   computeMovePlan,
   countOccupiedCells,
+  type MoveAnimSegment,
 } from '../game/flingBoard.js'
 import { ballPlushClass } from './ballPlush.js'
 import { buildCellAriaLabel } from './cellAriaLabel.js'
@@ -75,7 +76,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
 
   let session = new GameSession(pack.levels[idx]!)
 
-  root.innerHTML = ''
+  root.replaceChildren()
   root.className = 'game-root'
 
   const header = document.createElement('header')
@@ -203,6 +204,29 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
   let lastAxisH = -1
   let moveAnimating = false
 
+  async function commitAnimatedMove(
+    startCell: number,
+    dx: number,
+    dy: number,
+    precomputedPlan?: MoveAnimSegment[] | null,
+  ): Promise<void> {
+    const plan = precomputedPlan ?? computeMovePlan(session.getBoard(), startCell, dx, dy)
+    if (!plan?.length) return
+    moveAnimating = true
+    boardEl.setAttribute('aria-busy', 'true')
+    try {
+      await runMoveAnimation(plan, boardEl, dx, dy)
+      session.commitMove(startCell, dx, dy)
+    } catch (e) {
+      if (typeof console !== 'undefined') console.error('Animation error:', e)
+    } finally {
+      moveAnimating = false
+      boardEl.removeAttribute('aria-busy')
+      boardEl.classList.remove('board--animating')
+      renderAll()
+    }
+  }
+
   async function playMoveWithAnimation(
     startCell: number,
     dx: number,
@@ -212,25 +236,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     if (session.getPhase() !== 'playing') return
     if (session.getBoard().cells[startCell]! < 0) return
     if (!canMove(session.getBoard(), startCell, dx, dy)) return
-
-    const plan = computeMovePlan(session.getBoard(), startCell, dx, dy)
-    if (!plan?.length) return
-
-    moveAnimating = true
-    boardEl.setAttribute('aria-busy', 'true')
-    try {
-      await runMoveAnimation(plan, boardEl, dx, dy)
-      session.pushUndoSnapshot()
-      session.executeMovePhysics(startCell, dx, dy)
-    } catch (e) {
-      // animation failed — no snapshot was pushed, board is unchanged
-      if (typeof console !== 'undefined') console.error('Animation error:', e)
-    } finally {
-      moveAnimating = false
-      boardEl.removeAttribute('aria-busy')
-      boardEl.classList.remove('board--animating')
-      renderAll()
-    }
+    await commitAnimatedMove(startCell, dx, dy)
   }
 
   async function playHintWithAnimation(): Promise<void> {
@@ -248,22 +254,8 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
       renderAll()
       return
     }
-    moveAnimating = true
-    boardEl.setAttribute('aria-busy', 'true')
     hintLine.hidden = true
-    try {
-      await runMoveAnimation(plan, boardEl, dx, dy)
-      session.pushUndoSnapshot()
-      session.executeMovePhysics(startCell, dx, dy)
-    } catch (e) {
-      // animation failed — no snapshot was pushed, board is unchanged
-      if (typeof console !== 'undefined') console.error('Animation error:', e)
-    } finally {
-      moveAnimating = false
-      boardEl.removeAttribute('aria-busy')
-      boardEl.classList.remove('board--animating')
-      renderAll()
-    }
+    await commitAnimatedMove(startCell, dx, dy, plan)
   }
 
   function persistProgress(): void {
