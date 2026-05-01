@@ -89,19 +89,39 @@ test('多关卡导航：通关后下一关，然后上一关', async ({ page }) 
   await expect(page.locator('.level-label')).toContainText('w2-s1')
 })
 
-test('键盘方向键：选中球后用方向键移动', async ({ page }) => {
-  await page.goto('/')
+test('键盘方向键：选中球后按方向键可移动', async ({ page }) => {
+  await page.goto('/?level=1')
   await page.waitForSelector('.board .cell-ball', { timeout: 15_000 })
 
-  // 点击一个球来选中它
+  // 用 hint 完成整关（w2-s2 有多步），验证键盘操作不崩溃
+  // 先选中第一个球
   const ballCell = page.locator('.board .cell-ball').first()
   await ballCell.click()
   await expect(page.locator('.cell-selected')).toBeVisible()
 
-  // 尝试方向键（可能不一定有合法方向，但不应报错）
-  await page.keyboard.press('ArrowRight')
-  // 如果移动合法，球数会减少；如果不合法，状态不变
-  // 只要不崩溃就算通过
-  await page.waitForTimeout(500)
-  await expect(page.locator('.board')).toBeVisible()
+  // 尝试四个方向键，断言至少有一个方向触发了合法移动（球数减少或胜利）
+  let moveSucceeded = false
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp']) {
+    const ballsBefore = await page.locator('.board .cell-ball').count()
+    // 重新选中球（如果上一次方向无效，焦点仍在选中格；如果有效则选中已清除）
+    const selectedExists = await page.locator('.cell-selected').count()
+    if (!selectedExists) {
+      await page.locator('.board .cell-ball').first().click()
+    }
+    await page.keyboard.press(key)
+    await page.waitForTimeout(800)
+
+    const statusText = await page.locator('.game-status').textContent()
+    if (statusText?.includes('胜利')) {
+      moveSucceeded = true
+      break
+    }
+
+    const ballsAfter = await page.locator('.board .cell-ball').count()
+    if (ballsAfter < ballsBefore) {
+      moveSucceeded = true
+      break
+    }
+  }
+  expect(moveSucceeded).toBeTruthy()
 })

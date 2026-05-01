@@ -266,11 +266,7 @@ export async function runMoveAnimation(
   const prefersReducedMotion = window.matchMedia(
     '(prefers-reduced-motion: reduce)',
   ).matches
-  if (prefersReducedMotion) {
-    boardEl.classList.add('board--animating')
-    boardEl.classList.remove('board--animating')
-    return
-  }
+  if (prefersReducedMotion) return
 
   boardEl.classList.add('board--animating')
   let ghost: HTMLDivElement | null = null

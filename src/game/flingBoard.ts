@@ -58,11 +58,11 @@ export function countOccupiedCells(board: FlingBoard): number {
 }
 
 export function isWon(board: FlingBoard): boolean {
-  return countBalls(board) === 1
+  return countOccupiedCells(board) === 1
 }
 
 export function isErrorZeroBalls(board: FlingBoard): boolean {
-  return countBalls(board) === 0
+  return countOccupiedCells(board) === 0
 }
 
 /**

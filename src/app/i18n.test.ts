@@ -19,9 +19,9 @@ describe('i18n', () => {
     vi.restoreAllMocks()
   })
 
-  it('getUiLocale returns en when storage empty and navigator is zh', () => {
+  it('getUiLocale returns zh when storage empty and navigator is zh', () => {
     vi.stubGlobal('navigator', { language: 'zh-CN' })
-    expect(getUiLocale()).toBe('en')
+    expect(getUiLocale()).toBe('zh')
   })
 
   it('getUiLocale returns en when storage empty and navigator is ja', () => {

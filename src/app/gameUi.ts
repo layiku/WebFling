@@ -207,34 +207,33 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     startCell: number,
     dx: number,
     dy: number,
-  ): Promise<boolean> {
-    if (moveAnimating) return false
-    if (session.getPhase() !== 'playing') return false
-    if (session.getBoard().cells[startCell]! < 0) return false
-    if (!canMove(session.getBoard(), startCell, dx, dy)) return false
+  ): Promise<void> {
+    if (moveAnimating) return
+    if (session.getPhase() !== 'playing') return
+    if (session.getBoard().cells[startCell]! < 0) return
+    if (!canMove(session.getBoard(), startCell, dx, dy)) return
 
     const plan = computeMovePlan(session.getBoard(), startCell, dx, dy)
-    if (!plan?.length) return false
+    if (!plan?.length) return
 
     moveAnimating = true
     boardEl.setAttribute('aria-busy', 'true')
     try {
-      session.pushUndoSnapshot()
       await runMoveAnimation(plan, boardEl, dx, dy)
+      session.pushUndoSnapshot()
       session.executeMovePhysics(startCell, dx, dy)
     } catch {
-      session.undo()
+      // animation failed — no snapshot was pushed, board is unchanged
     } finally {
       moveAnimating = false
       boardEl.removeAttribute('aria-busy')
-      // 兜底：确保 board--animating 不会因异常路径永久残留（pointer-events: none 会卡死交互）
       boardEl.classList.remove('board--animating')
       renderAll()
     }
-    return true
   }
 
   async function playHintWithAnimation(): Promise<void> {
+    if (moveAnimating) return
     const r = session.getPackagedHintStep()
     if (!r.ok) {
       hintMessage(r.reason)
@@ -252,11 +251,11 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     boardEl.setAttribute('aria-busy', 'true')
     hintLine.hidden = true
     try {
-      session.pushUndoSnapshot()
       await runMoveAnimation(plan, boardEl, dx, dy)
+      session.pushUndoSnapshot()
       session.executeMovePhysics(startCell, dx, dy)
     } catch {
-      session.undo()
+      // animation failed — no snapshot was pushed, board is unchanged
     } finally {
       moveAnimating = false
       boardEl.removeAttribute('aria-busy')
@@ -427,7 +426,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
         SWIPE_MIN_PX,
       )
       if (dir && session.getPhase() === 'playing') {
-        void playMoveWithAnimation(cell, dir.dx, dir.dy)
+        playMoveWithAnimation(cell, dir.dx, dir.dy)
       } else {
         // 位移不足判定为轻触 → 选中该球
         session.selectCell(cell)
@@ -460,15 +459,16 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     else if (ev.key === 'ArrowUp') dy = -1
     else return
     ev.preventDefault()
-    void playMoveWithAnimation(sel, dx, dy)
+    playMoveWithAnimation(sel, dx, dy)
   })
 
   prevBtn.addEventListener('click', () => setIndex(idx - 1))
   nextBtn.addEventListener('click', () => setIndex(idx + 1))
   undoBtn.addEventListener('click', () => {
-    session.undo()
-    hintLine.hidden = true
-    renderAll()
+    if (session.undo()) {
+      hintLine.hidden = true
+      renderAll()
+    }
   })
   restartBtn.addEventListener('click', () => {
     session.restart()

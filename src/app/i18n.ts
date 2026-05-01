@@ -16,6 +16,7 @@ export function getUiLocale(): UiLocale {
   if (typeof navigator !== 'undefined') {
     const nav = navigator.language.toLowerCase()
     if (nav.startsWith('en')) return 'en'
+    if (nav.startsWith('zh')) return 'zh'
   }
   return 'en'
 }

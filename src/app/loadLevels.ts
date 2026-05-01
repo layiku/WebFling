@@ -123,7 +123,7 @@ function parseLevelRecord(raw: unknown, index: number): LevelRecord {
     parseMoveStep(step, `${prefix}.solution[${j}]`, boardSize),
   )
 
-  const actualStepCount = solution?.length ?? 0
+  const actualStepCount = solution.length
   if (o.stepCount !== actualStepCount) {
     throw new Error(
       `${prefix}: stepCount (${o.stepCount}) != solution.length (${actualStepCount})`,
@@ -131,7 +131,7 @@ function parseLevelRecord(raw: unknown, index: number): LevelRecord {
   }
 
   // 重放整条 solution，确认每步均合法且最终只剩 1 个球
-  if (solution && solution.length > 0) {
+  if (solution.length > 0) {
     const board = createBoard(o.width, o.height, o.piecePositions as number[])
     if (!verifySolution(board, solution)) {
       throw new Error(`${prefix}: solution replay failed (illegal move or wrong end state)`)

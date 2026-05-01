@@ -141,9 +141,7 @@ describe('computeMovePlan', () => {
     ])
     const after = cloneBoard(b)
     move(after, 0, 1, 0)
-    const sim = cloneBoard(b)
-    move(sim, 0, 1, 0)
-    expect(sim.cells).toEqual(after.cells)
+    expect(after.cells).not.toEqual(b.cells)
   })
 
   it('records a chain: second roll may be a one-cell path before the next impact', () => {
