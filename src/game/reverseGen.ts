@@ -465,6 +465,7 @@ export function generateLevel(
   if (ballCount < 1) throw new RangeError('ballCount')
   if (ballCount > width * height) return null
 
+  // ballCount=1: trivially won — only for testing; production range is N=2..16 (PROJECT_RULES §3)
   if (ballCount === 1) {
     const board = randomOneBallBoard(width, height, rng)
     return { board: normalizeBoard(board), solution: [] }

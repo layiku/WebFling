@@ -69,4 +69,9 @@ describe('i18n', () => {
     expect(zh.remainingBalls(3)).toContain('3')
     expect(hintReasonMessage('en', 'done')).toContain('No more')
   })
+
+  it('hintReasonMessage returns fallback for unknown reason', () => {
+    expect(hintReasonMessage('en', 'unknown_code')).toBe('Hint unavailable')
+    expect(hintReasonMessage('zh', 'unknown_code')).toBe('提示暂时不可用')
+  })
 })

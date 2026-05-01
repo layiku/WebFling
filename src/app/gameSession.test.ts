@@ -157,4 +157,61 @@ describe('GameSession', () => {
     expect(countBalls(g.getBoard())).toBe(2)
     expect(g.getPhase()).toBe('playing')
   })
+
+  it('selectCell ignores out-of-bounds indices', () => {
+    const level: LevelRecord = {
+      id: 't5',
+      ballCount: 2,
+      stepCount: 1,
+      width: 3,
+      height: 3,
+      piecePositions: [0, 4],
+      solution: [],
+    }
+    const g = new GameSession(level)
+    g.selectCell(0)
+    expect(g.getSelectedCell()).toBe(0)
+    g.selectCell(-1)
+    expect(g.getSelectedCell()).toBe(0)
+    g.selectCell(999)
+    expect(g.getSelectedCell()).toBe(0)
+  })
+
+  it('tryMoveFromCell returns false for out-of-bounds startCell', () => {
+    const level: LevelRecord = {
+      id: 't6',
+      ballCount: 2,
+      stepCount: 1,
+      width: 3,
+      height: 3,
+      piecePositions: [0, 4],
+      solution: [],
+    }
+    const g = new GameSession(level)
+    expect(g.tryMoveFromCell(-1, 1, 0)).toBe(false)
+    expect(g.tryMoveFromCell(999, 1, 0)).toBe(false)
+  })
+
+  it('enters lost phase when board has zero balls', () => {
+    // 3x3 board: single ball at cell 0 (top-left).
+    // Abnormal: move upward (bypasses canMove) → exits immediately → 0 balls → lost.
+    // Note: this is only reachable via direct executeMovePhysics call;
+    // normal flow checks canMove first which prevents this.
+    const level: LevelRecord = {
+      id: 't7',
+      ballCount: 1,
+      stepCount: 0,
+      width: 3,
+      height: 3,
+      piecePositions: [0],
+      solution: [],
+    }
+    const g = new GameSession(level)
+    g.pushUndoSnapshot()
+    g.executeMovePhysics(0, 0, -1)
+    expect(g.getPhase()).toBe('lost')
+    expect(g.canUndo()).toBe(false)
+    g.restart()
+    expect(g.getPhase()).toBe('playing')
+  })
 })

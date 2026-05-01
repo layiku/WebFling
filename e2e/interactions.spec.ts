@@ -7,8 +7,8 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('撤销：提示一步后撤销恢复到移动前', async ({ page }) => {
-  // 导航到第二关 w2-s2（2 球、通常多步），确保移动后未立刻胜利
-  await page.goto('/?level=1')
+  // 导航到 w3-s1（3 球、stepCount=2），提示一步后不会立刻胜利，可测试撤销
+  await page.goto('/?level=5')
   await page.waitForSelector('.board .cell-ball', { timeout: 15_000 })
 
   // 记录移动前的球数

@@ -36,8 +36,8 @@ export function applyDocumentLocale(locale: UiLocale): void {
   document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en'
 }
 
-export function documentTitle(locale: UiLocale): string {
-  return locale === 'zh' ? 'Fling Web' : 'Fling Web'
+export function documentTitle(_locale: UiLocale): string {
+  return 'Fling Web'
 }
 
 export function loadingMessage(locale: UiLocale): string {
@@ -140,5 +140,5 @@ export function hintReasonMessage(locale: UiLocale, reason: string): string {
     not_playing: m.hintNotPlaying,
     illegal: m.hintIllegal,
   }
-  return map[reason] ?? reason
+  return map[reason] ?? (locale === 'zh' ? '提示暂时不可用' : 'Hint unavailable')
 }

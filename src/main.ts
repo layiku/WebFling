@@ -10,11 +10,17 @@ document.title = documentTitle(getUiLocale())
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) throw new Error('#app missing')
 
-app.innerHTML = `<main class="shell"><p class="muted">${loadingMessage(getUiLocale())}</p></main>`
+const loadingMain = document.createElement('main')
+loadingMain.className = 'shell'
+const loadingP = document.createElement('p')
+loadingP.className = 'muted'
+loadingP.textContent = loadingMessage(getUiLocale())
+loadingMain.appendChild(loadingP)
+app.appendChild(loadingMain)
 
 loadLevelPack('/levels.json')
   .then((pack) => {
-    app.innerHTML = ''
+    app.replaceChildren()
     const main = document.createElement('main')
     main.className = 'shell'
     app.appendChild(main)

@@ -62,6 +62,7 @@ export class GameSession {
   /** 点击有球的格子选中；点空格清除选中 */
   selectCell(linearIndex: number): void {
     if (this.phase !== 'playing') return
+    if (linearIndex < 0 || linearIndex >= this.board.cells.length) return
     if (this.board.cells[linearIndex] >= 0) {
       this.selectedCell = linearIndex
     } else {
@@ -113,6 +114,7 @@ export class GameSession {
    */
   tryMoveFromCell(startCell: number, dx: number, dy: number): boolean {
     if (this.phase !== 'playing') return false
+    if (startCell < 0 || startCell >= this.board.cells.length) return false
     if (this.board.cells[startCell] < 0) return false
     if (!canMove(this.board, startCell, dx, dy)) return false
 

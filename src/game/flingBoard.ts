@@ -39,6 +39,10 @@ export function cloneBoard(board: FlingBoard): FlingBoard {
   }
 }
 
+/**
+ * 去重球数（含 Set 分配）。合法局面下与 countOccupiedCells 结果相同。
+ * 仅用于 reverseGen 等需检测非法局面的场景；热路径请用 countOccupiedCells。
+ */
 export function countBalls(board: FlingBoard): number {
   const seen = new Set<number>()
   for (let i = 0; i < board.cells.length; i++) {
@@ -209,6 +213,12 @@ export function computeMovePlan(
       xx += dx
       yy += dy
     }
+  }
+
+  // After the last impact, the exiting piece may travel through empty cells
+  // before leaving the board — produce a roll segment for that travel.
+  if (path.length >= 2) {
+    segments.push({ kind: 'roll', pieceId: movingId, path: [...path] })
   }
 
   const exitCell = lasty * w + lastx

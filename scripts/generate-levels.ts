@@ -25,7 +25,7 @@ const __dir = dirname(fileURLToPath(import.meta.url))
 
 export const DEFAULT_MASTER_SEED = 0xf11c002
 
-/** All levels use a fixed 7 × 8 board. */
+/** Board dimensions — must stay in sync with docs/LEVEL_SPEC.md §1 and docs/LEVEL_GENERATION.md */
 export const BOARD_W = 7
 export const BOARD_H = 8
 

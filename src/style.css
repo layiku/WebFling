@@ -37,7 +37,7 @@ h1,
 }
 
 .muted {
-  color: #6e6e73;
+  color: #5e5e63;
   font-size: 0.9rem;
 }
 
@@ -230,6 +230,10 @@ code {
   min-height: 0;
   /* 飞出动画的幽灵球会移出格网；不裁剪则撑开文档滚动条，滚动条显隐会导致整页抖动 */
   overflow: hidden;
+}
+
+.board-row {
+  display: contents;
 }
 
 .board--animating {

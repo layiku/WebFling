@@ -22,10 +22,16 @@
 | 胜利后「下一关」解锁（须先 merge `cleared` 再判断） | 已实现 | `progress.test.ts` → `胜利后「下一关」导航` |
 | 覆盖率阈值（Vitest v8） | 已实现 | `npm run coverage` + `vite.config.ts` → `thresholds` |
 | E2E（第一关通关） | 已实现 | `e2e/first-level.spec.ts`（Playwright） |
+| E2E（撤销） | 已实现 | `e2e/interactions.spec.ts` |
+| E2E（重开） | 已实现 | `e2e/interactions.spec.ts` |
+| E2E（语言切换） | 已实现 | `e2e/interactions.spec.ts` |
+| E2E（多关导航） | 已实现 | `e2e/interactions.spec.ts` |
+| E2E（键盘方向键） | 已实现 | `e2e/interactions.spec.ts` |
 | 中英文 UI（`i18n`） | 已实现 | `i18n.test.ts` |
 
 ## 如何检查「每个功能都有测试」
 
-1. 打开本表，确认「待实现」行在交付前全部变为「已实现」并填测试位置。  
-2. 运行 `npm run coverage`，对新增模块在 `vite.config.ts` 中设置 `coverage.thresholds`。  
+1. 打开本表，确认「待实现」行在交付前全部变为「已实现」并填测试位置。
+2. 运行 `npm run coverage`，对新增模块在 `vite.config.ts` 中设置 `coverage.thresholds`。
 3. 代码评审时对照 **IMPLEMENTATION_PLAN.md** 各阶段勾选项。
+4. 注意：`npm run verify` 不含 E2E，完整验证请用 `npm run verify:all`。

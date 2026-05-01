@@ -149,10 +149,25 @@ describe('computeMovePlan', () => {
     const plan = computeMovePlan(b, 0, 1, 0)
     expect(plan).not.toBeNull()
     const kinds = plan!.map((s) => s.kind)
-    expect(kinds).toEqual(['roll', 'impact', 'roll', 'impact', 'flyOff'])
+    expect(kinds).toEqual(['roll', 'impact', 'roll', 'impact', 'roll', 'flyOff'])
     expect(plan![1]).toMatchObject({ kind: 'impact', strikerStopCell: 1, hitCell: 2 })
     expect(plan![2]).toEqual({ kind: 'roll', pieceId: 1, path: [2, 3] })
     expect(plan![3]).toMatchObject({ kind: 'impact', strikerStopCell: 3, hitCell: 4 })
+    expect(plan![4]).toEqual({ kind: 'roll', pieceId: 2, path: [4, 5, 6] })
+  })
+
+  it('includes a roll segment for post-impact travel before flyOff', () => {
+    // 7x1 board: piece 0 at cell 0, piece 1 at cell 2.
+    // Piece 0 rolls to 1, impacts piece 1 at cell 2.
+    // Piece 1 then rolls through cells 3,4,5,6 and exits —
+    // there MUST be a roll segment [2,3,4,5,6] before the flyOff.
+    const b = createBoard(7, 1, [0, 2])
+    const plan = computeMovePlan(b, 0, 1, 0)
+    expect(plan).not.toBeNull()
+    const kinds = plan!.map((s) => s.kind)
+    expect(kinds).toEqual(['roll', 'impact', 'roll', 'flyOff'])
+    expect(plan![2]).toEqual({ kind: 'roll', pieceId: 1, path: [2, 3, 4, 5, 6] })
+    expect(plan![3]).toMatchObject({ kind: 'flyOff', pieceId: 1, fromCell: 6 })
   })
 })
 

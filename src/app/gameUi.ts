@@ -222,8 +222,9 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
       await runMoveAnimation(plan, boardEl, dx, dy)
       session.pushUndoSnapshot()
       session.executeMovePhysics(startCell, dx, dy)
-    } catch {
+    } catch (e) {
       // animation failed — no snapshot was pushed, board is unchanged
+      if (typeof console !== 'undefined') console.error('Animation error:', e)
     } finally {
       moveAnimating = false
       boardEl.removeAttribute('aria-busy')
@@ -254,8 +255,9 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
       await runMoveAnimation(plan, boardEl, dx, dy)
       session.pushUndoSnapshot()
       session.executeMovePhysics(startCell, dx, dy)
-    } catch {
+    } catch (e) {
       // animation failed — no snapshot was pushed, board is unchanged
+      if (typeof console !== 'undefined') console.error('Animation error:', e)
     } finally {
       moveAnimating = false
       boardEl.removeAttribute('aria-busy')
@@ -299,6 +301,7 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     nextBtn.disabled =
       !isNextLevelEnabled(progress, idx, TOTAL_LEVEL_SLOTS) || moveAnimating
     hintBtn.disabled = ph !== 'playing' || moveAnimating
+    langBtn.disabled = moveAnimating
 
     if (ph === 'won') {
       statusEl.textContent = m.statusWon
@@ -322,7 +325,6 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     const b = session.getBoard()
     const w = b.width
     const h = b.height
-    const cells = w * h
     boardFrame.style.setProperty('--bw', String(w))
     boardFrame.style.setProperty('--bh', String(h))
 
@@ -351,31 +353,36 @@ export function mountGame(root: HTMLElement, pack: LevelPack): void {
     boardEl.style.gridTemplateRows = `repeat(${h}, minmax(0, 1fr))`
     boardEl.replaceChildren()
     const sel = session.getSelectedCell()
-    for (let i = 0; i < cells; i++) {
-      const col = i % w
-      const row = Math.floor(i / w)
-      const id = b.cells[i]!
-      const cell = document.createElement('button')
-      cell.type = 'button'
-      cell.className = 'cell'
-      cell.dataset.index = String(i)
-      cell.setAttribute('role', 'gridcell')
-      cell.tabIndex = sel === i ? 0 : -1
-      cell.setAttribute(
-        'aria-label',
-        buildCellAriaLabel(col, row, id, i, sel, locale),
-      )
-      if (id >= 0) {
-        cell.classList.add('cell-ball')
-        if (sel === i) cell.classList.add('cell-selected')
-        const plush = document.createElement('span')
-        plush.className = `ball-plush ${ballPlushClass(id)}`
-        plush.setAttribute('aria-hidden', 'true')
-        cell.appendChild(plush)
-      } else {
-        cell.classList.add('cell-empty')
+    for (let r = 0; r < h; r++) {
+      const rowEl = document.createElement('div')
+      rowEl.className = 'board-row'
+      rowEl.setAttribute('role', 'row')
+      for (let c = 0; c < w; c++) {
+        const i = r * w + c
+        const id = b.cells[i]!
+        const cell = document.createElement('button')
+        cell.type = 'button'
+        cell.className = 'cell'
+        cell.dataset.index = String(i)
+        cell.setAttribute('role', 'gridcell')
+        cell.tabIndex = sel === i ? 0 : -1
+        cell.setAttribute(
+          'aria-label',
+          buildCellAriaLabel(c, r, id, i, sel, locale),
+        )
+        if (id >= 0) {
+          cell.classList.add('cell-ball')
+          if (sel === i) cell.classList.add('cell-selected')
+          const plush = document.createElement('span')
+          plush.className = `ball-plush ${ballPlushClass(id)}`
+          plush.setAttribute('aria-hidden', 'true')
+          cell.appendChild(plush)
+        } else {
+          cell.classList.add('cell-empty')
+        }
+        rowEl.appendChild(cell)
       }
-      boardEl.appendChild(cell)
+      boardEl.appendChild(rowEl)
     }
   }
 
