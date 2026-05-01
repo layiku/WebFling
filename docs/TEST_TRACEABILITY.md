@@ -28,6 +28,8 @@
 | E2E（多关导航） | 已实现 | `e2e/interactions.spec.ts` |
 | E2E（键盘方向键） | 已实现 | `e2e/interactions.spec.ts` |
 | 中英文 UI（`i18n`） | 已实现 | `i18n.test.ts` |
+| 生产关卡固定 7×8：运行时加载器拒绝非 7×8 维度 | 已实现 | `loadLevels.test.ts` → `rejects non-7x8 dimensions` |
+| 生产关卡固定 7×8：离线校验器拒绝非 7×8 维度 | 已实现 | `validate-level-pack.test.ts` → `rejects non-7x8 dimensions` |
 
 ## 如何检查「每个功能都有测试」
 

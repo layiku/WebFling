@@ -99,9 +99,11 @@ export class GameSession {
    * 原子提交：压入撤销快照 + 执行物理移动。
    * 供动画结束后一次性调用，避免 push/execute 分两步导致错序。
    */
-  commitMove(startCell: number, dx: number, dy: number): void {
+  commitMove(startCell: number, dx: number, dy: number): boolean {
+    if (this.phase !== 'playing') return false
     this.pushUndoSnapshot()
     this.executeMovePhysics(startCell, dx, dy)
+    return true
   }
 
   /**

@@ -192,6 +192,27 @@ describe('GameSession', () => {
     expect(g.tryMoveFromCell(999, 1, 0)).toBe(false)
   })
 
+  it('commitMove returns false after win and leaves board unchanged', () => {
+    // 3x3 board with two balls: ball at 0 can fling ball at 1 rightward off edge
+    const level: LevelRecord = {
+      id: 't-guard',
+      ballCount: 2,
+      stepCount: 1,
+      width: 3,
+      height: 3,
+      piecePositions: [0, 1],
+      solution: [],
+    }
+    const g = new GameSession(level)
+    // Move ball 0 rightward — hits ball 1, which exits the right edge
+    g.commitMove(0, 1, 0)
+    expect(g.getPhase()).toBe('won')
+    const snapshot = new Int16Array(g.getBoard().cells)
+    const result = g.commitMove(0, 1, 0)
+    expect(result).toBe(false)
+    expect(Array.from(g.getBoard().cells)).toEqual(Array.from(snapshot))
+  })
+
   it('enters lost phase when board has zero balls', () => {
     // 3x3 board: single ball at cell 0 (top-left).
     // Abnormal: move upward (bypasses canMove) → exits immediately → 0 balls → lost.

@@ -49,3 +49,8 @@ playwright/.cache/
 
 # Claude Code（会话缓存，勿提交）
 .claude/
+
+# AI agent 配置与计划文件（本地用途，勿提交）
+AGENTS.md
+CLAUDE.md
+GLM-Plan.md
